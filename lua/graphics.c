@@ -372,8 +372,8 @@ static int INTRAFONT_print(lua_State *L)
 static int INTRAFONT_printColumn(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 4 || args > 9)
-        return luaL_error(L, "intraFont.printColumn(x, y, text, width, [textColor], [font], [size], [align], [scroll]) takes 4, 5, 6, 7, 8 or 9 arguments");
+    if(args < 4 || args > 10)
+        return luaL_error(L, "intraFont.printColumn(x, y, text, width, [textColor], [font], [size], [align], [GU_LINEAR] [scroll]) takes 4, 5, 6, 7, 8, 9 or 10 arguments");
 
     float x = luaL_checknumber(L, 1);
     float y = luaL_checknumber(L, 2);
@@ -383,10 +383,13 @@ static int INTRAFONT_printColumn(lua_State *L)
     intraFont *font = (args >= 6) ? getFont(L, 6): luaFont;
     float size = luaL_optnumber(L, 7, 1.f);
     int align = luaL_optnumber(L, 8, INTRAFONT_ALIGN_LEFT);
-    int scroll = luaL_optnumber(L, 9, INTRAFONT_ALIGN_LEFT);
+    bool linear = (lua_toboolean(L, 9)) ? true : false;
+    int scroll = luaL_optnumber(L, 10, INTRAFONT_ALIGN_LEFT);
 
     intraFontSetStyle(font, size, color, 0, 0.0f, align | scroll);
     
+    intraFontActivate(font, linear);
+
     lua_pushnumber(L, intraFontPrintColumn(font, x, y+intraFontTextHeight(font), width, text));
 
     return 1;
@@ -395,8 +398,8 @@ static int INTRAFONT_printColumn(lua_State *L)
 static int INTRAFONT_printUnderlined(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 3 || args > 7)
-        return luaL_error(L, "intraFont.printUnderlined(x, y, text, [textColor], [lineColor], [font], [textSize]) takes 3, 4, 5, 6 or 7 arguments");
+    if(args < 3 || args > 8)
+        return luaL_error(L, "intraFont.printUnderlined(x, y, text, [textColor], [lineColor], [font], [textSize], [GU_LINEAR]) takes 3, 4, 5, 6, 7 or 8 arguments");
 
     int x = luaL_checknumber(L, 1);
     int y = luaL_checknumber(L, 2);
@@ -405,16 +408,17 @@ static int INTRAFONT_printUnderlined(lua_State *L)
     u32 lineColor = (args >= 5) ? *toColor(L, 5) : WHITE;
     intraFont *font = (args >= 6) ? getFont(L, 6): luaFont;
     float textSize = luaL_optnumber(L, 7, 1);
+    bool linear = (lua_toboolean(L, 8)) ? true : false;
     
-    lua_pushnumber(L, UnderLinedText(x, y+intraFontTextHeight(font), font, text, textSize, textColor, lineColor));
+    lua_pushnumber(L, UnderLinedText(x, y+intraFontTextHeight(font), font, text, textSize, textColor, lineColor, linear));
     return 1;
 }
 
 static int INTRAFONT_printContoured(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 3 || args > 8)
-        return luaL_error(L, "intraFont.printContoured(x, y, text, [textColor], [contourColor], [font], [textSize], [textAngle]) takes 3, 4, 5, 6, 7 or 8 arguments");
+    if(args < 3 || args > 9)
+        return luaL_error(L, "intraFont.printContoured(x, y, text, [textColor], [contourColor], [font], [textSize], [textAngle], [GU_LINEAR]) takes 3, 4, 5, 6, 7, 8 or 9 arguments");
 
     int x = luaL_checknumber(L, 1);
     int y = luaL_checknumber(L, 2);
@@ -424,8 +428,9 @@ static int INTRAFONT_printContoured(lua_State *L)
     intraFont *font = (args >= 6) ? getFont(L, 6): luaFont;
     float textSize = luaL_optnumber(L, 7, 1);
     float textAngle = luaL_optnumber(L, 8, 0);
+    bool linear = (lua_toboolean(L, 9)) ? true : false;
     
-    lua_pushnumber(L, ContouredText(x, y+intraFontTextHeight(font), font, text, textSize, textAngle, textColor, cColor, INTRAFONT_ALIGN_CENTER));
+    lua_pushnumber(L, ContouredText(x, y+intraFontTextHeight(font), font, text, textSize, textAngle, textColor, cColor, INTRAFONT_ALIGN_LEFT, linear));
     
     return 1;
 }
@@ -433,8 +438,8 @@ static int INTRAFONT_printContoured(lua_State *L)
 static int INTRAFONT_printBackground(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 3 || args > 7)
-        return luaL_error(L, "intraFont.printBackground(x, y, text, [textColor], [bgColor], [font], [textSize]) takes 3, 4, 5, 6 or 7 arguments");
+    if(args < 3 || args > 8)
+        return luaL_error(L, "intraFont.printBackground(x, y, text, [textColor], [bgColor], [font], [textSize], [GU_LINEAR]) takes 3, 4, 5, 6, 7 or 8 arguments");
 
     int x = luaL_checknumber(L, 1);
     int y = luaL_checknumber(L, 2);
@@ -443,8 +448,9 @@ static int INTRAFONT_printBackground(lua_State *L)
     u32 bgColor = (args >= 5) ? *toColor(L, 5) : WHITE;
     intraFont *font = (args >= 6) ? getFont(L, 6): luaFont;
     float textSize = luaL_optnumber(L, 7, 1);
+    bool linear = (lua_toboolean(L, 8)) ? true : false;
     
-    lua_pushnumber(L, BackgroundColorText(x, y+intraFontTextHeight(font), font, text, textSize, textColor, bgColor, INTRAFONT_ALIGN_LEFT));
+    lua_pushnumber(L, BackgroundColorText(x, y+intraFontTextHeight(font), font, text, textSize, textColor, bgColor, INTRAFONT_ALIGN_LEFT, linear));
 
     return 1;
 }
@@ -452,8 +458,8 @@ static int INTRAFONT_printBackground(lua_State *L)
 static int INTRAFONT_printStriked(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 3 || args > 7)
-        return luaL_error(L, "intraFont.printStriked(x, y, text, [textColor], [lineColor], [font], [textSize]) takes 3, 4, 5, 6 or 7 arguments");
+    if(args < 3 || args > 8)
+        return luaL_error(L, "intraFont.printStriked(x, y, text, [textColor], [lineColor], [font], [textSize], [GU_LINEAR]) takes 3, 4, 5, 6, 7 or 8 arguments");
 
     int x = luaL_checknumber(L, 1);
     int y = luaL_checknumber(L, 2);
@@ -461,9 +467,10 @@ static int INTRAFONT_printStriked(lua_State *L)
     u32 textColor = (args >= 4) ? *toColor(L, 4) : WHITE;
     u32 lineColor = (args >= 5) ? *toColor(L, 5) : WHITE;
     intraFont *font = (args >= 6) ? getFont(L, 6): luaFont;
-    float textSize = luaL_optnumber(L, 7, 1);    
+    float textSize = luaL_optnumber(L, 7, 1);
+    bool linear = (lua_toboolean(L, 8)) ? true : false;    
     
-    lua_pushnumber(L, StrikedText(x, y+intraFontTextHeight(font), font, text, textSize, textColor, lineColor));
+    lua_pushnumber(L, StrikedText(x, y+intraFontTextHeight(font), font, text, textSize, textColor, lineColor, linear));
 
     return 1;
 }
@@ -471,8 +478,8 @@ static int INTRAFONT_printStriked(lua_State *L)
 static int INTRAFONT_printShadowed(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 3 || args > 10)
-        return luaL_error(L, "intraFont.printShadowed(x, y, text, [textColor], [shadowColor], [font], [shadowAngle], [lightDistance], [textSize], [textAngle]) takes 3, 4, 5, 6, 7, 8, 9 or 10 arguments");
+    if(args < 3 || args > 11)
+        return luaL_error(L, "intraFont.printShadowed(x, y, text, [textColor], [shadowColor], [font], [shadowAngle], [lightDistance], [textSize], [textAngle], [GU_LINEAR]) takes 3, 4, 5, 6, 7, 8, 9, 10 or 11 arguments");
 
     int x = luaL_checknumber(L, 1);
     int y = luaL_checknumber(L, 2);
@@ -484,8 +491,9 @@ static int INTRAFONT_printShadowed(lua_State *L)
     int dist = luaL_optnumber(L, 8, 2);
     float textSize = luaL_optnumber(L, 9, 1);
     int textAngle = luaL_optnumber(L, 10, 0);
+    bool linear = (lua_toboolean(L, 11)) ? true : false;    
     
-    lua_pushnumber(L, ShadowedText(x, y+intraFontTextHeight(font), font, text, textSize, textAngle, shadowAngle, dist, textColor, shadowColor));
+    lua_pushnumber(L, ShadowedText(x, y+intraFontTextHeight(font), font, text, textSize, textAngle, shadowAngle, dist, textColor, shadowColor, linear));
 
     return 1;
 }
@@ -510,8 +518,8 @@ static int INTRAFONT_printReversed(lua_State *L)
 static int INTRAFONT_printGradient(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 3 || args > 7)
-        return luaL_error(L, "intraFont.printGradient(x, y, text, [textColorStart], [textColorEnd], [font], [textSize]) takes 3, 4, 5, 6 or 7 arguments");
+    if(args < 3 || args > 8)
+        return luaL_error(L, "intraFont.printGradient(x, y, text, [textColorStart], [textColorEnd], [font], [textSize], [GU_LINEAR]) takes 3, 4, 5, 6, 7 or 8 arguments");
 
     int x = luaL_checknumber(L, 1);
     int y = luaL_checknumber(L, 2);
@@ -520,8 +528,9 @@ static int INTRAFONT_printGradient(lua_State *L)
     u32 textColor2 = (args >= 5) ? *toColor(L, 5) : BLUE;
     intraFont *font = (args >= 6) ? getFont(L, 6): luaFont;
     float textSize = luaL_optnumber(L, 7, 1);
+    bool linear = (lua_toboolean(L, 8)) ? true : false;    
 
-    GradientText(x, y, font, text, textColor1, textColor2, textSize);
+    GradientText(x, y, font, text, textColor1, textColor2, textSize, linear);
 
     return 0;
 }
@@ -1354,7 +1363,7 @@ static int PMP_play(lua_State *L)
         g2dEnd();
 
         if (PMP_GOT_SUBS && strcmp(getSubString(), "") != 0)
-            BackgroundColorText(240, 205 + intraFontTextHeight(SUBTITLE_FONT), SUBTITLE_FONT, getSubString(), 1.0, WHITE, 0xDE000000, INTRAFONT_ALIGN_CENTER);
+            BackgroundColorText(240, 205 + intraFontTextHeight(SUBTITLE_FONT), SUBTITLE_FONT, getSubString(), 1.0, WHITE, 0xDE000000, INTRAFONT_ALIGN_CENTER, false);
         
 
         g2dFlip(G2D_VSYNC);
@@ -1582,7 +1591,7 @@ int PMP_init(lua_State *L)
     PMP_LAST_FRAME = 0;
     PMP_CURRENT_FRAME = 0;
 
-    watermarkk = g2dTexLoad(NULL, watermark, size_watermark, G2D_VOID);
+    //watermarkk = g2dTexLoad(NULL, watermark, size_watermark, G2D_VOID);
 
     luaL_register(L, "PMP", PMP_methods);
 

@@ -41,7 +41,7 @@ enum degrade_mode {
  colorLine : La couleur du soulignement
  
  *****/
-float UnderLinedText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorLine);
+float UnderLinedText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorLine, bool linear);
 
 
 /***** StrikedText
@@ -54,7 +54,7 @@ float UnderLinedText(int x, int y, intraFont *font, const char *text, float size
  colorLine : La couleur de la ligne
  
  *****/
-float StrikedText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorLine);
+float StrikedText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorLine, bool linear);
 
 
 /***** InversedText
@@ -103,7 +103,7 @@ float AlphaDegrade(int x, int y, intraFont *font, const char *text, g2dColor col
  Intensity : l'intensité de l'ombre. (pour un meilleur résultat, mettez entre 1 et 30)
  
  *****/
-float ShadowedText(int x, int y, intraFont *font, const char *text, float size, float angle, float shadowAngle, double distance, g2dColor colorText, g2dColor colorShadow);
+float ShadowedText(int x, int y, intraFont *font, const char *text, float size, float angle, float shadowAngle, double distance, g2dColor colorText, g2dColor colorShadow, bool linear);
 
 
 /***** ContouredText
@@ -116,7 +116,7 @@ float ShadowedText(int x, int y, intraFont *font, const char *text, float size, 
  colorContour : la couleur du contour
  
  *****/
-float ContouredText(int x, int y, intraFont *font, const char *text, float size, float angle, g2dColor colorText, g2dColor colorContour, unsigned int options);
+float ContouredText(int x, int y, intraFont *font, const char *text, float size, float angle, g2dColor colorText, g2dColor colorContour, unsigned int options, bool linear);
 
 
 /***** BackgroundColorText
@@ -129,8 +129,8 @@ float ContouredText(int x, int y, intraFont *font, const char *text, float size,
  colorBackground : la couleur du fond
  
  *****/
-float BackgroundColorText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorBackground, unsigned int options);
+float BackgroundColorText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorBackground, unsigned int options, bool linear);
 
-void GradientText(int x, int y, intraFont *font, const char *text, g2dColor colorBegin, g2dColor colorEnd, float size);
+void GradientText(int x, int y, intraFont *font, const char *text, g2dColor colorBegin, g2dColor colorEnd, float size, bool linear);
 
 //EOF

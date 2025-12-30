@@ -1,6 +1,6 @@
 #include "libtext.h"
 
-float UnderLinedText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorLine)
+float UnderLinedText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorLine, bool linear)
 {	
 	intraFontSetStyle(font, 1, WHITE, 0, 0.0f,INTRAFONT_ALIGN_LEFT);
 	font->color = colorText;
@@ -8,6 +8,7 @@ float UnderLinedText(int x, int y, intraFont *font, const char *text, float size
 
 	float width = intraFontMeasureText(font, text);
 	
+    intraFontActivate(font, linear);
 	intraFontPrint(font, x, y, text);
 
 	g2dBeginRects(G2D_VOID);
@@ -131,7 +132,7 @@ float AlphaDegrade(int x, int y, intraFont *font, const char *text, g2dColor col
 }
 
 
-float ShadowedText(int x, int y, intraFont *font, const char *text, float size, float angle, float shadowAngle, double distance, g2dColor colorText, g2dColor colorShadow)
+float ShadowedText(int x, int y, intraFont *font, const char *text, float size, float angle, float shadowAngle, double distance, g2dColor colorText, g2dColor colorShadow, bool linear)
 {
     float radAngle = shadowAngle*M_PI/180;
 
@@ -142,20 +143,25 @@ float ShadowedText(int x, int y, intraFont *font, const char *text, float size, 
 	int shadowOffsetY = distance * sinY;
 
 	intraFontSetStyle(font, size, colorShadow, 0, angle, INTRAFONT_ALIGN_LEFT);
-	intraFontPrint(font, x+shadowOffsetX, y+shadowOffsetY, text);
+	
+    intraFontActivate(font, linear);
+    intraFontPrint(font, x+shadowOffsetX, y+shadowOffsetY, text);
 	
 	intraFontSetStyle(font, size, colorText, 0, angle, INTRAFONT_ALIGN_LEFT);
+    
     return intraFontPrint(font, x, y, text);
 }
 
 
-float ContouredText(int x, int y, intraFont *font, const char *text, float size, float angle, g2dColor colorText, g2dColor colorContour, unsigned int options)
+float ContouredText(int x, int y, intraFont *font, const char *text, float size, float angle, g2dColor colorText, g2dColor colorContour, unsigned int options, bool linear)
 {
     int i, j;
 
 	intraFontSetStyle(font, 1, WHITE, 0, 0.0f, options);
 	intraFontSetStyle(font, size, colorContour, 0, angle, options);
 	
+    intraFontActivate(font, linear);
+
     for (i = -1; i <= 1; i++)
     {
         for (j = -1; j <= 1; j++)
@@ -166,7 +172,7 @@ float ContouredText(int x, int y, intraFont *font, const char *text, float size,
     return intraFontPrint(font, x, y, text);
 }
 
-float BackgroundColorText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorBackground, unsigned int options)
+float BackgroundColorText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorBackground, unsigned int options, bool linear)
 {
 	intraFontSetStyle(font, size, colorText, 0, 0.0f, options);
     
@@ -217,14 +223,16 @@ float BackgroundColorText(int x, int y, intraFont *font, const char *text, float
 		g2dAdd();
 	g2dEnd();
 	
+    intraFontActivate(font, linear);
 	return intraFontPrint(font, x, y+intraFontTextHeight(font), text);
 }
 
 
-float StrikedText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorLine)
+float StrikedText(int x, int y, intraFont *font, const char *text, float size, g2dColor colorText, g2dColor colorLine, bool linear)
 {
 	
 	intraFontSetStyle(font, size, colorText, 0, 0.0f, INTRAFONT_ALIGN_LEFT);
+    intraFontActivate(font, linear);
 	intraFontPrint(font, x, y, text);
 	
 	int width = intraFontMeasureText(font, text);
@@ -267,7 +275,7 @@ float StrikedText(int x, int y, intraFont *font, const char *text, float size, g
     }*/
 //}
 
-void GradientText(int x, int y, intraFont *font, const char *text, g2dColor colorBegin, g2dColor colorEnd, float size)
+void GradientText(int x, int y, intraFont *font, const char *text, g2dColor colorBegin, g2dColor colorEnd, float size, bool linear)
 {
     int textSize = strlen(text);
     if (textSize == 0) return;
@@ -281,6 +289,8 @@ void GradientText(int x, int y, intraFont *font, const char *text, g2dColor colo
 
     intraFontSetStyle(font, size, G2D_RGBA(0, 0, 0, 255), 0, 0, 0);
 
+    intraFontActivate(font, linear);
+    
 	int originalX = x; // Сохранить начальную координату X
     int i = 0;
     while (i < textSize)
