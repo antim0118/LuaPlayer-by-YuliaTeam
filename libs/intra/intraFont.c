@@ -64,14 +64,16 @@ int intraFontGetBMP(intraFont *font, unsigned short id, unsigned char glyphtype)
     if (glyphtype & PGF_CHARGLYPH) {
       glyph = &(font->glyph[id]);
     } else {
-      glyph = &(font->shadowGlyph[id]);
+      return 0;
+      //glyph = &(font->shadowGlyph[id]);
     }
   } else { //FILETYPE_BWFON
     if (glyphtype & PGF_CHARGLYPH) {
       glyph = &(font->glyph[0]);
       glyph->flags = font->glyphBW[id].flags | PGF_BMP_H_ROWS;
     } else {
-      glyph = &(font->shadowGlyph[0]);
+      return 0;
+      //glyph = &(font->shadowGlyph[0]);
     }
     glyph->ptr = ((unsigned long)id)*36; //36 bytes/char    
   }
@@ -147,14 +149,14 @@ int intraFontGetBMP(intraFont *font, unsigned short id, unsigned char glyphtype)
                 font->texture[((font->texX + (7-(xx&7)+(xx&248))) + (font->texY + yy) * font->texWidth)>>1] |= (value);
               }
             } else { //PGF_SHADOWGLYPH
-              value = intraFontGetV(4,font->fontdata,&b);
+              /*value = intraFontGetV(4,font->fontdata,&b);
               if ((font->texX + xx) & 1) {
                 font->texture[((font->texX + xx) + (font->texY + yy) * font->texWidth)>>1] &= 0x0F;
                 font->texture[((font->texX + xx) + (font->texY + yy) * font->texWidth)>>1] |= (value<<4);
               } else {
                 font->texture[((font->texX + xx) + (font->texY + yy) * font->texWidth)>>1] &= 0xF0;
                 font->texture[((font->texX + xx) + (font->texY + yy) * font->texWidth)>>1] |= (value);
-              }
+              }*/
             }
             
           }
@@ -190,13 +192,13 @@ int intraFontGetBMP(intraFont *font, unsigned short id, unsigned char glyphtype)
           }
         }        
       }
-      for (i = 0; i < font->n_shadows; i++) {
+      /*for (i = 0; i < font->n_shadows; i++) {
         if ( (font->shadowGlyph[i].flags & PGF_CACHED) && (font->shadowGlyph[i].y == glyph->y) ) {
           if ( (font->shadowGlyph[i].x+font->shadowGlyph[i].width+1) > glyph->x && font->shadowGlyph[i].x < (glyph->x+glyph->width+1) ) {
             font->shadowGlyph[i].flags -= PGF_CACHED;
           }
         }
-      }
+      }*/
 
     } else return 0; //transposition=0 or overlay glyph
   } else {
@@ -229,12 +231,13 @@ int intraFontGetGlyph(unsigned char *data, unsigned long *b, unsigned char glyph
     glyph->flags = intraFontGetV(6,data,b);
     if (glyph->flags & PGF_CHARGLYPH) {
         (*b) += 7; //skip magic number
-    glyph->shadowID = intraFontGetV(9,data,b);
+    //glyph->shadowID =
+        intraFontGetV(9,data,b);
     (*b) += 24 + ((glyph->flags & PGF_NO_EXTRA1)?0:56) + ((glyph->flags & PGF_NO_EXTRA2)?0:56) + ((glyph->flags & PGF_NO_EXTRA3)?0:56); //skip to 6bits before end of header
     glyph->advance = advancemap[intraFontGetV(8,data,b)*2]/16;
     } else {
-    glyph->shadowID = 65535;
-        glyph->advance = 0;
+    //glyph->shadowID = 65535;
+      glyph->advance = 0;
     }    
   glyph->ptr = (*b)/8;
     return 1;
@@ -308,12 +311,12 @@ int intraFontPreCache(intraFont *font, unsigned int options) {
     if (font->texY > y || font->texYSize < font->glyph[i].height) font->texYSize = font->glyph[i].height; //minimize ysize after newline in cache(only valid for precached glyphs)
     if (font->texY < y) return 0;                               //char did not fit into cache -> abort precache (should reset cache and glyph.flags)
   }
-  for (i=0;i<font->n_shadows;i++) {
+  /*for (i=0;i<font->n_shadows;i++) {
     y = font->texY;
     intraFontGetBMP(font,i,PGF_SHADOWGLYPH);
     if (font->texY > y || font->texYSize < font->shadowGlyph[i].height) font->texYSize = font->shadowGlyph[i].height; //minimize ysize
     if (font->texY < y) return 0;                               //char did not fit into cache -> abort precache (should reset cache and glyph.flags)
-  }
+  }*/
   font->texHeight = ((font->texY) + (font->texYSize) + 7)&~7;     
   if (font->texHeight > font->texWidth) font->texHeight = font->texWidth;
   
@@ -344,8 +347,8 @@ int intraFontPreCache(intraFont *font, unsigned int options) {
 
 intraFont* intraFontLoad(const char *filename, unsigned int options) {
   unsigned long i,j;
-  static Glyph bw_glyph                         = { 0, 0, 16, 18, 0, 15, PGF_BMP_H_ROWS, 0, 64, 0 };
-  static Glyph bw_shadowGlyph                   = { 0, 0,  8, 10, 0,  5, PGF_BMP_H_ROWS, 0, 64, 0 };
+  static Glyph bw_glyph                         = { 0, 0, 16, 18, 0, 15, PGF_BMP_H_ROWS, 64, 0 };
+  //static Glyph bw_shadowGlyph                   = { 0, 0,  8, 10, 0,  5, PGF_BMP_H_ROWS, 0, 64, 0 };
   static const unsigned short bw_charmap_compr[]= { 0x00a4,  1, 0x00a7,  2, 0x00b0,  2, 0x00b7,  1, 0x00d7,  1, 0x00e0,  2, 0x00e8,  3, 0x00ec,  2,
                                                   0x00f2,  2, 0x00f7,  1, 0x00f9,  2, 0x00fc,  1, 0x0101,  1, 0x0113,  1, 0x011b,  1, 0x012b,  1, 
                             0x0144,  1, 0x0148,  1, 0x014d,  1, 0x016b,  1, 0x01ce,  1, 0x01d0,  1, 0x01d2,  1, 0x01d4,  1, 
@@ -408,32 +411,32 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
     font->texYSize = 0;  
     font->advancex = header.fixedsize[0]/16;
     font->advancey = header.fixedsize[1]/16;
-    font->n_shadows = (unsigned short)header.shadowmap_len;
-    font->shadowscale = (unsigned char)header.shadowscale[0];
+    //font->n_shadows = (unsigned short)header.shadowmap_len;
+    //font->shadowscale = (unsigned char)header.shadowscale[0];
     font->glyph = (Glyph*)malloc(font->n_chars*sizeof(Glyph));
     font->glyphBW = NULL;
-    font->shadowGlyph = (Glyph*)malloc(font->n_shadows*sizeof(Glyph));
+    //font->shadowGlyph = (Glyph*)malloc(font->n_shadows*sizeof(Glyph));
     font->charmap_compr = (unsigned short*)malloc(font->charmap_compr_len*sizeof(unsigned short)*2);
     font->charmap = (unsigned short*)malloc(header.charmap_len*sizeof(unsigned short));
-    if (!font->glyph || !font->shadowGlyph || !font->charmap_compr || !font->charmap) {
+    if (!font->glyph || !font->charmap_compr || !font->charmap) {
       fclose(file);
       intraFontUnload(font);
       return NULL;
     }
     memset(font->glyph, 0, font->n_chars*sizeof(Glyph)); //make sure glyphs are initialized with 0
-    memset(font->shadowGlyph, 0, font->n_shadows*sizeof(Glyph));
+    //memset(font->shadowGlyph, 0, font->n_shadows*sizeof(Glyph));
   } else { //FILETYPE_BWFON
     font->n_chars = filesize/36; //36 bytes/char
     font->charmap_compr_len = 165; //entries in the compressed charmap
     font->texYSize = 18;  
     font->advancex = 16*4;
     font->advancey = 18*4;
-    font->n_shadows = 1;
-    font->shadowscale = 24;
+    //font->n_shadows = 1;
+    //font->shadowscale = 24;
     font->glyph = &bw_glyph;
-    font->glyph[0].shadowID = font->n_chars; //shadow is appended
+    //font->glyph[0].shadowID = font->n_chars; //shadow is appended
     font->glyphBW = (GlyphBW*)malloc(font->n_chars*sizeof(GlyphBW));
-    font->shadowGlyph = &bw_shadowGlyph;
+    //font->shadowGlyph = &bw_shadowGlyph;
     font->charmap_compr = (unsigned short*)bw_charmap_compr; //static for bwfon
     font->charmap = NULL;                //not needed for bwfon
     if (!font->glyphBW) {
@@ -451,7 +454,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
   if ((options & INTRAFONT_CACHE_ASCII) ) font->options -= INTRAFONT_CACHE_ASCII; //pre-cached texture enabled at the end of font-load
     font->size = 1.0f;               //default size
     font->color = 0xFFFFFFFF;        //non-transparent white
-    font->shadowColor = 0xFF000000;  //non-transparent black
+    //font->shadowColor = 0xFF000000;  //non-transparent black
     font->angle = 0.f;               //non-rotated
     font->Rsin = 0.f;
     font->Rcos = 1.f;
@@ -485,19 +488,23 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
     }  
   
     //read shadowmap
-    unsigned long *ucs_shadowmap = intraFontGetTable(file, header.shadowmap_len, header.shadowmap_bpe);
-    if (ucs_shadowmap == NULL) {
+    //unsigned long *ucs_shadowmap = NULL;//intraFontGetTable(file, header.shadowmap_len, header.shadowmap_bpe);
+    /*if (ucs_shadowmap == NULL) {
       free(advancemap);  
       fclose(file);
       intraFontUnload(font);
       return NULL;
-    }
+    }*/
   
+    //SKIP SHADOWMAP
+    unsigned long shadow_table_size = ((header.shadowmap_len * header.shadowmap_bpe + 31) / 32) * 4;
+    fseek(file, shadow_table_size, SEEK_CUR);
+
     //version 6.3 charmap compression
     if (header.revision == 3) {
       if (fread(font->charmap_compr, font->charmap_compr_len*sizeof(unsigned short)*2, 1, file) != 1) {
         free(advancemap);    
-        free(ucs_shadowmap);
+        //free(ucs_shadowmap);
         fclose(file);
         intraFontUnload(font);
         return NULL;
@@ -511,7 +518,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
     if (header.charmap_bpe == 16) { //read directly from file...
       if (fread(font->charmap, header.charmap_len*sizeof(unsigned short), 1, file) != 1) {
         free(advancemap);  
-        free(ucs_shadowmap);
+        //free(ucs_shadowmap);
         fclose(file);
         intraFontUnload(font);
         return NULL;
@@ -520,7 +527,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
       unsigned long *id_charmap = intraFontGetTable(file, header.charmap_len, header.charmap_bpe);
       if (id_charmap == NULL) {
         free(advancemap);  
-        free(ucs_shadowmap);
+        //free(ucs_shadowmap);
         fclose(file);
         intraFontUnload(font);
         return NULL;
@@ -535,7 +542,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
     unsigned long *charptr = intraFontGetTable(file, header.charptr_len, header.charptr_bpe);
     if (charptr == NULL) {
       free(advancemap);  
-      free(ucs_shadowmap);
+      //free(ucs_shadowmap);
       fclose(file);
       intraFontUnload(font);
       return NULL;
@@ -547,7 +554,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
     font->fontdata = (unsigned char*)malloc(len_fontdata*sizeof(unsigned char));
     if (font->fontdata == NULL) {
       free(advancemap);  
-        free(ucs_shadowmap);
+      //free(ucs_shadowmap);
       free(charptr);
       fclose(file);
       intraFontUnload(font);
@@ -555,7 +562,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
     }
     if (fread(font->fontdata, len_fontdata*sizeof(unsigned char), 1, file) != 1) {
       free(advancemap);  
-      free(ucs_shadowmap);
+      //free(ucs_shadowmap);
       free(charptr);
       fclose(file);
       intraFontUnload(font);
@@ -574,7 +581,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
       (font->n_chars)--; //correct the above assumption
       if (font->n_chars == 0) { //no ASCII chars in fontfile -> abort
         free(advancemap);      
-        free(ucs_shadowmap);
+        //free(ucs_shadowmap);
         free(charptr);
         intraFontUnload(font);
         return NULL;
@@ -590,7 +597,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
       j = charptr[i]*4*8;
       if (!intraFontGetGlyph(font->fontdata, &j, PGF_CHARGLYPH, advancemap, &(font->glyph[i]))) {
         free(advancemap);      
-        free(ucs_shadowmap);
+        //free(ucs_shadowmap);
         free(charptr);
         intraFontUnload(font);
         return NULL;
@@ -608,7 +615,7 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
     } 
   
     //populate shadows and count space (only for chars needed)
-    unsigned short char_id, shadow_id = 0;
+    /*unsigned short char_id, shadow_id = 0;
     for (i = 0; i < font->n_chars; i++) {
       shadow_id = font->glyph[i].shadowID;
       char_id = intraFontGetID(font,ucs_shadowmap[shadow_id]);
@@ -632,11 +639,11 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
           x += font->shadowGlyph[shadow_id].width+1;
         }
       }                  
-    }
+    }*/
   
     //free temp stuff
     free(advancemap);
-    free(ucs_shadowmap);
+    //free(ucs_shadowmap);
     free(charptr);
   
     //cache chars, swizzle texture and free unneeded stuff (if INTRAFONT_CACHE_ALL or _ASCII)
@@ -695,7 +702,7 @@ void intraFontUnload(intraFont *font) {
     if (font->charmap_compr) free(font->charmap_compr);
     if (font->charmap) free(font->charmap);
     if (font->glyph) free(font->glyph);
-    if (font->shadowGlyph) free(font->shadowGlyph);
+    //if (font->shadowGlyph) free(font->shadowGlyph);
   } else { //FILETYPE_BWFON
     if (font->glyphBW) free(font->glyphBW);
   }
@@ -714,7 +721,7 @@ void intraFontShutdown(void) {
   //Nothing yet
 }
 
-void intraFontActivate(intraFont *font) {
+void intraFontActivate(intraFont *font, bool linear) {
   if(!font) return;
   if(!font->texture) return;
 
@@ -728,14 +735,16 @@ void intraFontActivate(intraFont *font) {
   sceGuTexEnvColor(0x0);
   sceGuTexOffset(0.f, 0.f);
   sceGuTexWrap(GU_CLAMP, GU_CLAMP);
-  sceGuTexFilter(GU_LINEAR, GU_LINEAR);
+  if (linear == true) sceGuTexFilter(GU_LINEAR, GU_LINEAR);
+  else sceGuTexFilter(GU_NEAREST, GU_NEAREST);
+  font->options |= INTRAFONT_ACTIVE;
 }
 
 void intraFontSetStyle(intraFont *font, float size, unsigned int color, unsigned int shadowColor, float angle, unsigned int options) {
   if (!font) return;
   font->size = size;
   font->color = color;
-  font->shadowColor = shadowColor;
+  //font->shadowColor = shadowColor;
   if (font->angle != angle) // Avoid recomputations
   {
     font->angle = angle;
@@ -862,7 +871,7 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
     }
   }
   
-  unsigned int color = font->color, shadowColor = font->shadowColor;
+  unsigned int color = font->color;//, shadowColor = font->shadowColor;
   float glyphscale = font->size;
   float width = 0.f, height = font->advancey * glyphscale / 4.0;
   float left = x, top = y - 2*height;
@@ -875,16 +884,16 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
     unsigned int c;
     float x, y, z;
   } fontVertex;
-  fontVertex *v, *v0, *v1, *v2, *v3, *v4, *v5, *s0, *s1, *s2, *s3, *s4, *s5;
+  fontVertex *v, *v0, *v1, *v2, *v3, *v4, *v5;//, *s0, *s1, *s2, *s3, *s4, *s5;
   
   //count number of glyphs to draw and cache BMPs
-  int j, n_glyphs, last_n_glyphs, n_sglyphs, changed, count = 0;
-  unsigned short char_id, subucs2, glyph_id, glyph_ptr, shadowGlyph_ptr;
+  int j, n_glyphs, n_sglyphs, changed, count = 0; //last_n_glyphs
+  unsigned short char_id, subucs2, glyph_id, glyph_ptr; //shadowGlyph_ptr;
   do {
     changed = 0;
     n_glyphs = 0;
     n_sglyphs = 0;
-    last_n_glyphs = 0;
+    //last_n_glyphs = 0;
     for(i = 0; i < length; i++) {
     
       char_id = intraFontGetID(font,text[i]); //char
@@ -910,23 +919,23 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
             }
           }
       
-          if (n_glyphs > last_n_glyphs) {
+          /*if (n_glyphs > last_n_glyphs) {
             n_sglyphs++; //shadow
             if (!(font->shadowGlyph[font->glyph[char_id].shadowID].flags & PGF_CACHED)) {
               if (intraFontGetBMP(font,font->glyph[char_id].shadowID,PGF_SHADOWGLYPH)) changed = 1; 
             }
             last_n_glyphs = n_glyphs;
-          }
+          }*/
         
         } else {                            //BWFON-file
           n_glyphs++; 
           if (!(font->glyphBW[char_id].flags & PGF_CACHED)) {
             if (intraFontGetBMP(font,char_id,PGF_CHARGLYPH)) changed = 1; 
           }
-          n_sglyphs++; //shadow
+          /*n_sglyphs++; //shadow
           if (!(font->shadowGlyph[0].flags & PGF_CACHED)) {
             if (intraFontGetBMP(font,font->glyph[0].shadowID,PGF_SHADOWGLYPH)) changed = 1; 
-          }
+          }*/
         }
       }
       
@@ -938,7 +947,7 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
   //reserve memory in displaylist (switch between GU_TRIANGLES and GU_SPRITES)
   v = sceGuGetMemory((font->isRotated ? 6 : 2) * (n_glyphs+n_sglyphs) * sizeof(fontVertex));
 
-  int s_index = 0, c_index = n_sglyphs, last_c_index = n_sglyphs; // index for shadow and character/overlay glyphs  
+  int c_index = n_sglyphs;//s_index = 0, last_c_index = n_sglyphs; // index for shadow and character/overlay glyphs  
   for (i = 0; i < length; i++) {
 
     //calculate left, height and possibly fill for character placement 
@@ -966,7 +975,7 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
                   left -= (count-60); //scroll left for (textwidth/60) s (speed = 1 pix/frame) and disappear for 0.5s
                 } else if (count < (textwidth+120)) {
                   color       = (color       & 0x00FFFFFF) | ((((color      >>24)*(count-textwidth-90))/30)<<24); //fade-in in 0.5s
-                  shadowColor = (shadowColor & 0x00FFFFFF) | ((((shadowColor>>24)*(count-textwidth-90))/30)<<24);
+                  //shadowColor = (shadowColor & 0x00FFFFFF) | ((((shadowColor>>24)*(count-textwidth-90))/30)<<24);
                 } else {
                   ux.f = left;     //reset counter
                 }
@@ -998,7 +1007,7 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
                 } else if (count < (textwidth+120)) {
                   left -= textwidth;
                   color       = (color       & 0x00FFFFFF) | ((((color      >>24)*(count-textwidth-90))/30)<<24); //fade-in in 0.5s
-                  shadowColor = (shadowColor & 0x00FFFFFF) | ((((shadowColor>>24)*(count-textwidth-90))/30)<<24);
+                  //shadowColor = (shadowColor & 0x00FFFFFF) | ((((shadowColor>>24)*(count-textwidth-90))/30)<<24);
                 } else {
                   ux.f = left;     //reset counter
                   left -= textwidth;
@@ -1069,7 +1078,7 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
     if (char_id < font->n_chars) {
 
       glyph_ptr = (font->fileType == FILETYPE_PGF) ? char_id : 0; //for fields not covered in GlyphBW (advance,...)
-      shadowGlyph_ptr = (font->fileType == FILETYPE_PGF) ? font->glyph[glyph_ptr].shadowID : 0; 
+      //shadowGlyph_ptr = (font->fileType == FILETYPE_PGF) ? font->glyph[glyph_ptr].shadowID : 0; 
     
       //center glyphs for monospace
       if (font->options & INTRAFONT_WIDTH_FIX) {
@@ -1178,7 +1187,7 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
       }
         
       //add vertices for shadow
-      if (c_index > last_c_index) {
+      /*if (c_index > last_c_index) {
         Glyph *shadowGlyph = &(font->shadowGlyph[shadowGlyph_ptr]);
     
         // Screen coords
@@ -1254,7 +1263,7 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
 
         s_index++;
         last_c_index = c_index;
-      }
+      }*/
 
       // advance
       if (font->options & INTRAFONT_WIDTH_FIX) {
@@ -1277,7 +1286,7 @@ float intraFontPrintColumnUCS2Ex(intraFont *font, float x, float y, float column
     
   //finalize and activate texture (if not already active or has been changed)
   sceKernelDcacheWritebackAll();
-  if (!(font->options & INTRAFONT_ACTIVE)) intraFontActivate(font);
+  if (!(font->options & INTRAFONT_ACTIVE)) intraFontActivate(font, true);
   
   sceGuDisable(GU_DEPTH_TEST);
   sceGuDrawArray((font->isRotated ? GU_TRIANGLES : GU_SPRITES), GU_TEXTURE_32BITF|GU_COLOR_8888|GU_VERTEX_32BITF|GU_TRANSFORM_2D, (n_glyphs+n_sglyphs)*(font->isRotated ? 6 : 2), 0, v);
@@ -1338,7 +1347,7 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     intraFont* font = NULL;
     
     // Validate size
-    if (size <= 0.0f || size > 40.0f) {
+    if (size <= 0.0f || size > 30.0f) {
         return NULL;
     }
 
@@ -1383,7 +1392,7 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     font->options = options;
     font->size = 1.0f;
     font->color = 0xFFFFFFFF;
-    font->shadowColor = 0xFF000000;
+    //font->shadowColor = 0xFF000000;
     font->angle = 0.0f;
     font->Rsin = 0.0f;
     font->Rcos = 1.0f;
@@ -1392,15 +1401,15 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     
     // Use larger texture for better glyph support
     font->texWidth = 512;
-    font->texHeight = (size <= 25) ? 256 : 512;
+    font->texHeight = 512;
     font->texX = 1;
     font->texY = 1;
     font->texYSize = 0;
     
     // Set advance based on actual font metrics
-    font->advancex = (int)(size * 4);
-    font->advancey = (int)(size * 4);
-    
+    font->advancex = (int)face->size->metrics.max_advance >> 6;
+    font->advancey = (int)(face->size->metrics.ascender - face->size->metrics.descender) >> 6;
+
     // Character set handling
     font->n_chars = 0x1000;
     font->charmap_compr_len = 10; // Увеличили для дополнительных диапазонов
@@ -1427,7 +1436,7 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     memset(font->glyph, 0, font->n_chars * sizeof(Glyph));
     
     // Shadow glyph (single style)
-    font->n_shadows = 1;
+    /*font->n_shadows = 1;
     font->shadowGlyph = (Glyph*)memalign(16, sizeof(Glyph));
     if (!font->shadowGlyph) {
         intraFontUnload(font);
@@ -1437,7 +1446,8 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     }
     memset(font->shadowGlyph, 0, sizeof(Glyph));
     font->shadowscale = 24;
-    
+    */
+
     // Character map compression info
     font->charmap_compr = (unsigned short*)memalign(16, font->charmap_compr_len * 2 * sizeof(unsigned short));
     if (!font->charmap_compr) {
@@ -1516,11 +1526,11 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
             
             glyph->width = slot->bitmap.width;
             glyph->height = slot->bitmap.rows;
-            glyph->left = slot->bitmap_left;
-            glyph->top = slot->bitmap_top - (face->ascender >> 6);
-            glyph->advance = slot->advance.x >> 4;
+            glyph->top = (short)slot->bitmap_top; 
+            glyph->left = (short)slot->bitmap_left;
+            glyph->advance = (short)slot->advance.x >> 4;
             glyph->flags = PGF_BMP_H_ROWS | PGF_CACHED;
-            glyph->shadowID = 0;
+            //glyph->shadowID = 0;
             glyph->ptr = 0;
             
             // Only cache glyph if it fits in texture
@@ -1575,7 +1585,7 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     font->n_chars = mapped_chars;
     
     // Create shadow glyph
-    Glyph* shadow = font->shadowGlyph;
+    /*Glyph* shadow = font->shadowGlyph;
     shadow->width = 8;
     shadow->height = 8;
     shadow->left = -2;
@@ -1584,15 +1594,16 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     shadow->flags = PGF_BMP_H_ROWS | PGF_CACHED;
     shadow->shadowID = 65535;
     shadow->ptr = 0;
-    
+    */
+
     // Position shadow in texture
-    if ((font->texX + 10) > font->texWidth) {
+    /*if ((font->texX + 10) > font->texWidth) {
         font->texY += font->texYSize + 1;
         font->texX = 1;
     }
     
-    shadow->x = font->texX;
-    shadow->y = font->texY;
+    //shadow->x = font->texX;
+    //shadow->y = font->texY;
     
     // Create simple shadow pattern
     static const unsigned char shadow_pattern[8] = {0x1, 0x3, 0x7, 0xF, 0x7, 0x3, 0x1, 0x0};
@@ -1607,7 +1618,7 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
                 font->texture[tex_pos] = (font->texture[tex_pos] & 0xF0) | value;
             }
         }
-    }
+    }*/
 
     // Cleanup FreeType
     FT_Done_Face(face);

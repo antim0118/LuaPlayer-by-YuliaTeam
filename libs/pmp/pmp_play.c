@@ -72,7 +72,7 @@ void pmp_play_safe_constructor(struct pmp_play_struct *p)
 void pmp_play_close(struct pmp_play_struct *p)
 {
 	//sceAudioSetFrequency(44100);
-	if (!(p->audio_reserved < 0)) FreeHardwareChannel(69);// sceAudioChRelease(p->audio_reserved);
+	if (!(p->audio_reserved < 0)) sceVaudioChRelease(); //FreeHardwareChannel(69);// sceAudioChRelease(p->audio_reserved);
 
 	if (!(p->semaphore_can_get   < 0)) sceKernelDeleteSema(p->semaphore_can_get);
 	if (!(p->semaphore_can_put   < 0)) sceKernelDeleteSema(p->semaphore_can_put);
@@ -250,12 +250,14 @@ int pmp_output_thread(SceSize input_length, void *input)
 		if (!PMP_PAUSE)
 		{
 			
-			sceAudioOutputBlocking(p->audio_reserved, PMP_AUDIO_VOLUME, current_buffer->audio_frame);
+			//sceAudioOutputBlocking(p->audio_reserved, PMP_AUDIO_VOLUME, current_buffer->audio_frame);
+			sceVaudioOutputBlocking(PMP_AUDIO_VOLUME, current_buffer->audio_frame);
 
 			int i = 1;
 			for (; i < current_buffer->number_of_audio_frames; i++)
 			{
-				sceAudioOutputBlocking(p->audio_reserved, PMP_AUDIO_VOLUME, current_buffer->audio_frame + p->decoder.audio_frame_size * i);
+				//sceAudioOutputBlocking(p->audio_reserved, PMP_AUDIO_VOLUME, current_buffer->audio_frame + p->decoder.audio_frame_size * i);
+				sceVaudioOutputBlocking(PMP_AUDIO_VOLUME, current_buffer->audio_frame + p->decoder.audio_frame_size * i);
 			}
 		
 			//current_buffer->last_delay -= 500;
@@ -353,14 +355,15 @@ char *pmp_play_open(struct pmp_play_struct *p, char *s, int show, int format)
 		return("pmp_play_open: sceAudioSetFrequency failed");
 	}*/
 	
-	int free_audio_channel = GetFreeHardwareChannel(69);
-	if (free_audio_channel < 0)
-	{
-		pmp_play_close(p);
-		return("pmp_play_open: no free audio channels");
-	}
+	//int free_audio_channel = GetFreeHardwareChannel(69);
+	//if (free_audio_channel < 0)
+	//{
+//		pmp_play_close(p);
+//		return("pmp_play_open: no free audio channels");
+//	}
 
-	p->audio_reserved = sceAudioChReserve(free_audio_channel, p->decoder.reader.file.header.audio.scale, PSP_AUDIO_FORMAT_STEREO);
+	//p->audio_reserved = sceAudioChReserve(free_audio_channel, p->decoder.reader.file.header.audio.scale, PSP_AUDIO_FORMAT_STEREO);
+	p->audio_reserved = sceVaudioChReserve(p->decoder.reader.file.header.audio.scale, 44100, PSP_VAUDIO_FORMAT_STEREO);
 	if (p->audio_reserved < 0)
 	{
 		pmp_play_close(p);

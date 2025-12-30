@@ -183,13 +183,14 @@ static int AALIB_play(lua_State *L)
     
     if(channel == PSPAALIB_CHANNEL_SCEMP3_1)
     {
-        if (LPYTMP3PATH == NULL)
+        return luaL_error(L, "u can't play mp3 cuz of conflicting with pmp play, maybe it'll be fixed");
+        /*if (LPYTMP3PATH == NULL)
             return luaL_error(L, "sound.play() channel isn't initialized");
 
         if(pgeMp3Play(LPYTMP3PATH) != 1)
             return luaL_error(L, "sound.play() internal error");
         
-        pgeMp3Loop(loop);
+        pgeMp3Loop(loop);*/
     }
     else
     {
@@ -211,7 +212,7 @@ static int AALIB_pause(lua_State *L)
     int channel = luaL_checknumber(L, 1);
 
     if(channel == PSPAALIB_CHANNEL_SCEMP3_1)
-        pgeMp3Pause();
+      {} // pgeMp3Pause();
     else
     {
         if(AalibPause(channel) != 0)
@@ -229,7 +230,7 @@ static int AALIB_stop(lua_State *L)
     int channel = luaL_checknumber(L, 1);
 
     if(channel == PSPAALIB_CHANNEL_SCEMP3_1)
-        pgeMp3Stop();
+       {} //pgeMp3Stop();
     else
     {
         if(AalibStop(channel) != 0)
@@ -254,7 +255,7 @@ static int AALIB_unload(lua_State *L)
     {
         if (LPYTMP3PATH)
         {
-            pgeMp3Stop();
+            //pgeMp3Stop();
             free(LPYTMP3PATH);
             LPYTMP3PATH = NULL;
         }
@@ -282,9 +283,9 @@ static int AALIB_volume(lua_State *L)
     
     if(channel == PSPAALIB_CHANNEL_SCEMP3_1)
     {
-        int volume = setInterval(luaL_checkint(L, 2), 0, 100)*250;
-        pgeMp3Vol = luaL_checkint(L, 2);
-        pgeMp3Volume(volume);
+        //int volume = setInterval(luaL_checkint(L, 2), 0, 100)*250;
+        //pgeMp3Vol = luaL_checkint(L, 2);
+        //pgeMp3Volume(volume);
     }
     else
     {
@@ -309,7 +310,7 @@ static int AALIB_GetStatus(lua_State *L)
 
     if(channel == PSPAALIB_CHANNEL_SCEMP3_1)
     {
-        int rez = pgeMp3IsPlaying();
+        /*int rez = pgeMp3IsPlaying();
 
         lua_newtable(L);
 		lua_pushstring(L, "state");
@@ -323,7 +324,7 @@ static int AALIB_GetStatus(lua_State *L)
 
         lua_pushstring(L, "volume");
         lua_pushnumber(L, pgeMp3Vol);
-        lua_settable(L, -3);
+        lua_settable(L, -3);*/
     }
     else
     {
@@ -367,7 +368,7 @@ static int AALIB_getInfo(lua_State *L)
 	if(lua_gettop(L) != 0)
         return luaL_error(L, "sound.info() takes no arguments");
 
-	pgeMp3Info f;
+	/*pgeMp3Info f;
 
 	if(pgeMp3IsPlaying() == 1)
 		f = pgeMp3GetInfo();
@@ -387,7 +388,7 @@ static int AALIB_getInfo(lua_State *L)
 	lua_pushstring(L, "year"); lua_pushstring(L, year); lua_settable(L, -3);
 	lua_pushstring(L, "genre"); lua_pushstring(L, genre); lua_settable(L, -3);
 	lua_pushstring(L, "id3v"); lua_pushstring(L, id3v); lua_settable(L, -3);
-	lua_pushstring(L, "track"); lua_pushnumber(L, track); lua_settable(L, -3);
+	lua_pushstring(L, "track"); lua_pushnumber(L, track); lua_settable(L, -3);*/
 	
     return 1;
 }
@@ -419,7 +420,7 @@ int AUDIO_init(lua_State *L)
         Const(audiochannels[c].name, audiochannels[c].number);
     }
 
-    pgeMp3Vol = 32768;
+    //pgeMp3Vol = 32768;
 
     return 0;
 }

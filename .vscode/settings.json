@@ -78,7 +78,8 @@
         "png.h": "c",
         "setjmp.h": "c",
         "string": "c",
-        "vaudio.h": "c"
+        "vaudio.h": "c",
+        "pspvaudio.h": "c"
     },
     "makefile.configureOnOpen": true
 }

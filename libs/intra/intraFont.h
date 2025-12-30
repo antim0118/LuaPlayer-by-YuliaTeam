@@ -20,6 +20,7 @@ extern "C" {
 
 #include "libccc.h"
 #include <ft2build.h>
+#include <stdbool.h>
 #include FT_FREETYPE_H
 
 /** @defgroup intraFont Font Library
@@ -91,11 +92,11 @@ typedef struct {
   unsigned short y;         //in pixels
   unsigned char width;      //in pixels
   unsigned char height;     //in pixels
-  char left;                //in pixels
-  char top;                 //in pixels
+  short left;                //in pixels
+  short top;                 //in pixels
   unsigned char flags;
-  unsigned short shadowID;  //to look up in shadowmap
-  char advance;             //in quarterpixels
+  //unsigned short shadowID;  //to look up in shadowmap
+  short advance;             //in quarterpixels
   unsigned long ptr;        //offset 
 } Glyph;
 
@@ -165,13 +166,13 @@ typedef struct intraFont {
   Glyph* glyph;                    /**< Character glyphs */
   GlyphBW* glyphBW;
     
-  unsigned short n_shadows;
-  unsigned char shadowscale;       /**< shadows in pgf file (width, height, left and top properties as well) are scaled by factor of (shadowscale>>6) */  
-  Glyph* shadowGlyph;              /**<  Shadow glyph(s) */  
+  //unsigned short n_shadows;
+  //unsigned char shadowscale;       /**< shadows in pgf file (width, height, left and top properties as well) are scaled by factor of (shadowscale>>6) */  
+  //Glyph* shadowGlyph;              /**<  Shadow glyph(s) */  
   
   float size;
   unsigned int color;
-  unsigned int shadowColor;
+  //unsigned int shadowColor;
   float angle, Rsin, Rcos;                /**< For rotation */
   short isRotated;
   unsigned int options;
@@ -216,8 +217,10 @@ void intraFontUnload(intraFont *font);
  * Activate the specified font.
  *
  * @param font - A valid ::intraFont
+ * 
+ * @param linear - smoth letters
  */
-void intraFontActivate(intraFont *font);
+void intraFontActivate(intraFont *font, bool linear);
 
 /**
  * Set font style

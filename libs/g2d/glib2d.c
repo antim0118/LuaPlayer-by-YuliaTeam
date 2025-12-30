@@ -1666,6 +1666,47 @@ g2dImage* g2dTexLoad(char path[], unsigned char* data, size_t size, g2dTex_Mode 
   return tex;
 }
 
+g2dImage* g2dTexCreatePlaceholder()
+{
+    // Create a 64x64 image with alpha blending support
+    g2dImage* tex = _g2dTexCreate(64, 64, true);
+    if (tex == NULL) return NULL;
+    
+    // Define the colors
+    g2dColor dark_gray = DARKGRAY;    // 0xFF3F3F3F
+    g2dColor light_gray = LITEGRAY;   // 0xFFBFBFBF
+    
+    // Size of each checkerboard square
+    int square_size = 8;
+    
+    // Fill the texture with checkerboard pattern
+    for (int y = 0; y < tex->h; y++)
+    {
+        for (int x = 0; x < tex->w; x++)
+        {
+            // Determine which square we're in
+            int square_x = x / square_size;
+            int square_y = y / square_size;
+            
+            // Use alternating colors based on square position
+            // Creates a chessboard pattern
+            if ((square_x + square_y) % 2 == 0)
+            {
+                tex->data[x + y * tex->tw] = dark_gray;
+            }
+            else
+            {
+                tex->data[x + y * tex->tw] = light_gray;
+            }
+        }
+    }
+    
+    // Write back to cache for performance
+    sceKernelDcacheWritebackAll();
+    
+    return tex;
+}
+
 // * Scissor functions *
 
 void g2dResetScissor()

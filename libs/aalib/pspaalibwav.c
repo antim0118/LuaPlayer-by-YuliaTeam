@@ -501,6 +501,7 @@ int LoadWav(char* filename, int channel, bool loadToRam) {
     sceIoRead(streamsWav[channel].file, &streamsWav[channel].sigBytes, 2);
     streamsWav[channel].sigBytes >>= 3;
 
+	/*
     // 2. Ищем LIST чанк с метаданными
     int listSize, listPos;
     if (FindWavChunk(streamsWav[channel].file, "LIST", &listSize, &listPos)) {
@@ -512,7 +513,7 @@ int LoadWav(char* filename, int channel, bool loadToRam) {
             ParseListChunk(&streamsWav[channel], listData, listSize);
             free(listData);
         }
-    }
+    }*/
 
 	// 3. Ищем data чанк
     int dataSize, dataPos;

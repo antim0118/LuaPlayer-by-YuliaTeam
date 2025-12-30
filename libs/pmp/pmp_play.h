@@ -33,6 +33,7 @@ this play the file (av output and basic functions - pause, seek ... )
 #include <pspthreadman.h>
 #include <pspaudio.h>
 #include <pspaudio_kernel.h>
+#include <pspvaudio.h>
 #include <pspdisplay.h>
 #include <pspctrl.h>
 #include <psppower.h>

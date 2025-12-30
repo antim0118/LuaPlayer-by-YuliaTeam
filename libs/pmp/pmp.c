@@ -28,6 +28,7 @@ this lib should be used to play .pmp files
 
 
 #include <pspsdk.h>
+#include <psputility.h>
 #include "pmp.h"
 #include "pmp_play.h"
 #include "avc.h"
@@ -35,6 +36,8 @@ static struct pmp_play_struct p;
 
 char* pmp_init()
 {
+	sceUtilityLoadModule(PSP_MODULE_AV_VAUDIO);
+
 	p.output_thread = sceKernelCreateThread("output", pmp_output_thread, 0x8, 0x4000, 0, 0);
 	if (p.output_thread < 0)
 		return("pmp_play_open: sceKernelCreateThread failed on output_thread");

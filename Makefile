@@ -31,17 +31,17 @@ ASFLAGS = $(CFLAGS) -c
 BUILD_PRX = 1
 PSP_FW_VERSION = 660
 
-LIBS = -lpge -lpng -ljpeg -lpsppower -lz -lpspgu -lm -lc -lFLAC -lvorbisidec -lpspaudio \
+LIBS = -lpng -ljpeg -lpsppower -lz -lpspgu -lm -lc -lFLAC -lvorbisidec -lpspaudio \
        -lpspaudiocodec -lpspaudiolib -lpspatrac3 -lpspmp3 -lpspmpeg \
        -lpspsystemctrl_kernel -lpsprtc -lpspgum -lpspvfpu -lpspusb -lpspusbstor \
-       -lpspkubridge -lpspvram -lbz2 -lfreetype
+       -lpspkubridge -lpspvram -lbz2 -lfreetype -lpspvaudio
 
 EXTRA_TARGETS = EBOOT.PBP
 #PSP_EBOOT_TITLE = LPYT PMP TEST
-PSP_EBOOT_TITLE = LuaPlayerYT 0.5
-PSP_EBOOT_ICON = res/icon_cassette-2.png
-PSP_EBOOT_SND0 = res/fitgirl.at3
-PSP_EBOOT_PIC1 = res/image_14.png
+PSP_EBOOT_TITLE = TTF Player for DNTRNKPORNO #LuaPlayerYT 0.5
+PSP_EBOOT_ICON = res/momo_ayase.png #res/icon_cassette-2.png
+PSP_EBOOT_SND0 = res/OXXXYMIRON_DNTRNK.at3 #res/fitgirl.at3
+PSP_EBOOT_PIC1 = res/DNTRNK_BG.png #res/image_14.png
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

@@ -227,39 +227,6 @@ int main()
     if(!f) sceKernelExitGame();
     fclose(f);
 
-    int c = 0;
-
-    while (c < 64)
-    {
-        g2dClear(G2D_RGBA(63,63,63,255));
-        g2dFlip(G2D_VSYNC);
-        c++;
-    }
-
-    g2dImage *logo = g2dTexLoad("lpyt_logo.png", NULL, 0, G2D_VOID);
-    AalibLoad("SS_INTRO.WAV", PSPAALIB_CHANNEL_WAV_1, false);
-    AalibPlay(PSPAALIB_CHANNEL_WAV_1);
-
-    float zoom = 0.f;
-
-    while (AalibGetStatus(PSPAALIB_CHANNEL_WAV_1) == PSPAALIB_STATUS_PLAYING)
-    {
-        g2dClear(BLACK);
-
-        g2dBeginRects(logo);
-        g2dSetCoordMode(G2D_CENTER);
-        g2dSetCoordXY(240, 136);
-        g2dSetScale(zoom, zoom);
-        g2dAdd();
-        g2dEnd();
-
-        zoom += 0.003;
-
-        g2dFlip(G2D_VSYNC);
-    }
-
-    g2dTexFree(&logo);
-
     while(1)
     {
         if(luaL_loadfile(L, config.main_script) == 0)
@@ -308,6 +275,7 @@ int main()
                     g2dAdd();
                     g2dEnd();
 
+                    intraFontActivate(luaFont, true);
                     intraFontPrintColumn(luaFont,213,94,220,error);
 
                     //printf("freeRam: %d\n", get_freeRam());

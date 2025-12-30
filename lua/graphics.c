@@ -347,19 +347,22 @@ static int INTRAFONT_size(lua_State *L)
 static int INTRAFONT_print(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 3 || args > 8)
-        return luaL_error(L, "intraFont.print(x, y, text, [textColor], [font], [size], [textAngle], [AlMode]) takes 3, 4, 5, 6, 7 or 8 arguments");
+    if(args < 3 || args > 9)
+        return luaL_error(L, "intraFont.print(x, y, text, [textColor], [font], [size], [textAngle], [GU_LINEAR], [AlMode]) takes 3, 4, 5, 6, 7, 8 or 9 arguments");
 
-    intraFont *font = (!lua_isnil(L, 1)) ? getFont(L, 1): luaFont;
-    int x = luaL_checknumber(L, 2);
-    int y = luaL_checknumber(L, 3);
-    const char* text = luaL_checkstring(L, 4);
-    u32 color = (args >= 5) ? *toColor(L, 5) : WHITE;
+    int x = luaL_checknumber(L, 1);
+    int y = luaL_checknumber(L, 2);
+    const char* text = luaL_checkstring(L, 3);
+    u32 color = (args >= 4) ? *toColor(L, 4) : WHITE;
+    intraFont *font = (args >= 5) ? getFont(L, 5): luaFont;
     float size = luaL_optnumber(L, 6, 1);
     float angle = luaL_optnumber(L, 7, 0);
-    float alMode = luaL_optnumber(L, 8, INTRAFONT_ALIGN_LEFT);
+    bool linear = (lua_toboolean(L, 8)) ? true : false;
+    float alMode = luaL_optnumber(L, 9, INTRAFONT_ALIGN_LEFT);
     
     intraFontSetStyle(font, size, color, 0, angle, alMode);
+
+    intraFontActivate(font, linear);
 
     lua_pushnumber(L, intraFontPrint(font, x, y+intraFontTextHeight(font), text));
 
@@ -708,36 +711,7 @@ static int G2D_flip(lua_State *L)
     if(lua_gettop(L) != 0)
         return luaL_error(L, "screen.flip() takes no arguments");
 
-    //intraFontSetStyle(luaFont, 0.8, G2D_RGBA(135,200,165,255), 0, 0.f, INTRAFONT_ALIGN_RIGHT);
-    //intraFontPrint(luaFont, 475,242, "LuaPlayer YT\nDEV 0.5 beta 2.2\nИмени Марточки\nи C2H5OH *з*");
-    //intraFontPrint(luaFont, 477,266, "DEV 0.5 beta 2.1");
-    //AalibMetadata metadata;
-    
-    /*if (!AalibIsFree(PSPAALIB_CHANNEL_OGG_3 - PSPAALIB_CHANNEL_OGG_1))
-    {
-        GetMetadataOgg(PSPAALIB_CHANNEL_OGG_3 - PSPAALIB_CHANNEL_OGG_1, &metadata);
-
-        g2dBeginRects(metadata.cover);
-        g2dSetCoordXY(10, 10);
-        g2dAdd();
-        g2dEnd();
-
-        intraFontPrint(luaFont, 10, 100, metadata.title);
-        intraFontPrint(luaFont, 10, 110, metadata.artist);
-        intraFontPrint(luaFont, 10, 120, metadata.album);
-        intraFontPrint(luaFont, 10, 130, metadata.year);
-        intraFontPrint(luaFont, 10, 140, metadata.genre);
-    }*/
-
-    //g2dBeginRects(watermarkk);
-    //g2dSetCoordMode(G2D_DOWN_RIGHT);
-    //g2dSetCoordXY(478,270);
-    //intraFontPrint(luaFont, 100, 100, "ЛУПТ ВАСКЕРС ДА-ДА РАНА ЕЩО НА ПАМОИКУ");
-    //g2dAdd();
-    //g2dEnd();
     g2dFlip(G2D_VSYNC);
-
-    //luaFont->color = G2D_RGBA(255,255,255,255);
 
     return 0;
 }
@@ -795,6 +769,24 @@ static int G2D_texLoad(lua_State *L)
     g2dImage *img = g2dTexLoad(path, NULL, 0, G2D_VOID);
     if(!img)
         return luaL_error(L, "Image.load() error loading \"%s\"", path);
+
+    checkCapacity((void ***)&loadedImages, &imageCount, &capacity, imageCount + 1);
+    loadedImages[imageCount++] = img;
+
+    g2dImage** image = pushG2D(L);
+	*image = img;
+
+    return 1;
+}
+
+static int G2D_createPlaceholder(lua_State *L)
+{
+    if(lua_gettop(L) != 0)
+        return luaL_error(L, "Image.createPlaceholder() takes no arguments");
+
+    g2dImage *img = g2dTexCreatePlaceholder();
+    if (!img)
+        return luaL_error(L, "Image.createPlaceholder() error");
 
     checkCapacity((void ***)&loadedImages, &imageCount, &capacity, imageCount + 1);
     loadedImages[imageCount++] = img;
@@ -1076,6 +1068,7 @@ static const luaL_Reg GFX_methods2[] = {
     {"draweasy",     G2D_draweasy},
     {"unload",       G2D_texUnload},
     {"drawCircleOnTex", G2D_drawCircleOnTex},
+    {"createPlaceholder", G2D_createPlaceholder},
     {0, 0}
 };
 

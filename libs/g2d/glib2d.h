@@ -478,6 +478,16 @@ void g2dTexFree(g2dImage** tex);
 g2dImage* g2dTexLoad(char path[], unsigned char* data, size_t size, g2dTex_Mode mode);
 
 /**
+ * \brief Creates a placeholder image with a checkerboard pattern.
+ * @returns Pointer to the created image.
+ *
+ * This function creates a 64x64 placeholder image with alternating
+ * dark and light gray squares, commonly used as a placeholder texture.
+ * The pattern consists of 8x8 pixel squares in a chessboard arrangement.
+ */
+g2dImage* g2dTexCreatePlaceholder(void);
+
+/**
  * \brief Resets the current coordinates.
  *
  * This function must be called during object rendering.

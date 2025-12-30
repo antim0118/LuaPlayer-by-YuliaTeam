@@ -508,7 +508,7 @@ int LoadOgg(char* filename,int channel,bool loadToRam)
 	}
 	memset(&streamsOgg[channel].metadata, 0, sizeof(AalibMetadata));
     streamsOgg[channel].metadata.has_cover = 0;
-	ExtractVorbisMetadata(&streamsOgg[channel]);
+	//ExtractVorbisMetadata(&streamsOgg[channel]);
 	streamsOgg[channel].loadToRam=loadToRam;
 	if (streamsOgg[channel].loadToRam)
 	{

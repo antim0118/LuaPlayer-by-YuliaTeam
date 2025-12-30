@@ -437,6 +437,16 @@ static int SYSTEM_GetGAMEID(lua_State *L)
     return 1;
 }
 
+static int SYSTEM_GetGameTitle(lua_State *L)
+{
+    if(lua_gettop(L) != 0)
+        return luaL_error(L, "System.getGameTitle() takes no arguments");
+
+    lua_pushstring(L, LPYTGameTitle);
+
+    return 1;
+}
+
 void SaveData_Init(SceUtilitySavedataParam* LPYTSaveDataParams, int mode, void* savedata, const char* subTitle, const char* description, const char *key, unsigned int datasize, const char *ebootpath, const char *icon0path, char* AutoSaveFolder)
 {
     memset(LPYTSaveDataParams, 0, sizeof(SceUtilitySavedataParam));
@@ -1290,19 +1300,19 @@ static int SYSTEM_getNickname(lua_State *L)
 	return 1;
 }
 
-char *System_langs [12] = {
-	"Jap",
-	"Eng",
-	"Fr",
-	"Span",
-	"Ger",
-	"It",
-	"Dut",
-	"Por",
-	"Rus",
-	"Kor",
-	"ChTrad",
-	"ChSimpl"
+char *System_langs[12] = {
+    "JP",     // Japanese (Japan)
+    "US",     // English (United States)
+    "FR",     // French (France)
+    "ES",     // Spanish (Spain)
+    "DE",     // German (Germany)
+    "IT",     // Italian (Italy)
+    "NL",     // Dutch (Netherlands)
+    "PT",     // Portuguese (Portugal) или pt-BR для Бразилии
+    "RU",     // Russian (Russia)
+    "KR",     // Korean (Korea)
+    "TW", // Traditional Chinese (Taiwan)
+    "CN"  // Simplified Chinese (China)
 };
 
 static int SYSTEM_getLang(lua_State *L)
@@ -1331,21 +1341,22 @@ int countLinesInFile(const char *filename)
 
     while ((c = fgetc(file)) != EOF)
     {
-        if (c == '\n' || c == '\r')
+        if (c == '\n')
         {
             count++;
-
-            if (c == '\r')
-            {
-                char next = fgetc(file);
-                if (next != '\n') 
-                    ungetc(next, file);
-            }
+        }
+        else if (c == '\r')
+        {
+            count++;
+            int next = fgetc(file);
+            if (next != '\n') 
+                ungetc(next, file);
         }
         prev = c;
     }
 
-    if (prev != '\n' && prev != '\r')
+    // Если файл не заканчивается на новую строку, считаем последнюю строку
+    if (prev != '\n' && prev != '\r' && prev != EOF)
         count++;
 
     fclose(file);
@@ -1354,58 +1365,54 @@ int countLinesInFile(const char *filename)
 
 char* dynamicReadLine(FILE *file)
 {
+    if (file == NULL)
+        return NULL;
+
     char *line = NULL;
-    int len = 0;
-    int capacity = 16;
-    char c;
+    size_t len = 0;
+    size_t capacity = 16;
+    int c; // Должен быть int, а не char!
 
     line = (char*)malloc(capacity * sizeof(char));
-
     if (line == NULL)
         return NULL;
 
-    while (1)
+    while ((c = fgetc(file)) != EOF && c != '\n')
     {
-        c = fgetc(file);
-
-        if (c == EOF || c == '\n' || c == '\r')
+        // Обработка Windows line endings
+        if (c == '\r')
         {
-            if (c == '\r')
-            {
-                char next = fgetc(file);
-                if (next != '\n')
-                    ungetc(next, file);
-            }
+            int next = fgetc(file);
+            if (next != '\n')
+                ungetc(next, file);
             break;
         }
 
-        if (len == capacity - 1)
+        // Проверка необходимости реаллокации
+        if (len + 1 >= capacity)
         {
             capacity *= 2;
-
-            if (c == '\r')
-            {
-                char next = fgetc(file);
-                if (next != '\n')
-                    ungetc(next, file);
-            }
-
             char *temp = (char*)realloc(line, capacity * sizeof(char));
-
             if (temp == NULL)
             {
                 free(line);
                 return NULL;
             }
-
             line = temp;
         }
 
-        line[len++] = c;
+        line[len++] = (char)c;
     }
 
+    // Если ничего не прочитано и достигнут EOF
+    if (len == 0 && c == EOF)
+    {
+        free(line);
+        return NULL;
+    }
+
+    // Финальная реаллокация до точного размера
     char *resized_line = (char*)realloc(line, (len + 1) * sizeof(char));
-    
     if (resized_line == NULL)
     {
         free(line);
@@ -1416,25 +1423,36 @@ char* dynamicReadLine(FILE *file)
     return resized_line;
 }
 
-char** readFileLines(char *filename, int linesCount)
+char** readFileLines(const char *filename, int linesCount)
 {
-    FILE *file = fopen(filename, "r");
-    char **lines = (char**)malloc(sizeof(char*) * linesCount+1);
-    int i;
+    if (filename == NULL || linesCount < 0)
+        return NULL;
 
+    FILE *file = fopen(filename, "r");
     if (file == NULL) 
         return NULL;
 
-    lines[0] = "PLACEHOLDER";
+    // Выделяем память для указателей + 1 для нулевого индекса
+    char **lines = (char**)malloc(sizeof(char*) * (linesCount + 1));
+    if (lines == NULL)
+    {
+        fclose(file);
+        return NULL;
+    }
 
-    for (i = 1; i <= linesCount; i++)
+    // Инициализируем все указатели NULL
+    for (int i = 0; i <= linesCount; i++)
         lines[i] = NULL;
 
-    for (i = 1; i <= linesCount; i++)
+    // Читаем строки (начиная с индекса 1, как в оригинале)
+    for (int i = 1; i <= linesCount; i++)
     {
         lines[i] = dynamicReadLine(file);
         if (lines[i] == NULL)
+        {
+            // Достигнут конец файла или ошибка
             break;
+        }
     }
 
     fclose(file);
@@ -1447,16 +1465,25 @@ static int SYSTEM_dumpFileCreate(lua_State *L)
         return luaL_error(L, "System.fileDumpCreate(file) takes 1 argument");
 
     const char *filename = lua_tostring(L, 1);
+    if (filename == NULL)
+        return luaL_error(L, "Invalid filename");
 
-    int linesCount = countLinesInFile((char*)filename);
-    char **fileLines = readFileLines((char*)filename, linesCount);
+    int linesCount = countLinesInFile(filename);
+    if (linesCount < 0)
+        return luaL_error(L, "Cannot open file: %s", filename);
+
+    char **fileLines = readFileLines(filename, linesCount);
+    if (fileLines == NULL)
+        return luaL_error(L, "Failed to read file lines");
 
     lua_newtable(L);
-    char ***ptr = (char***)lua_newuserdata(L, sizeof(char***));
+    
+    // Создаем userdata для хранения указателя
+    char ***ptr = (char***)lua_newuserdata(L, sizeof(char**));
     *ptr = fileLines;
     lua_setfield(L, -2, "pointer");
 
-    lua_pushnumber(L, linesCount);
+    lua_pushinteger(L, linesCount);
     lua_setfield(L, -2, "linesCount");
 
     return 1;
@@ -1467,27 +1494,31 @@ static int SYSTEM_dumpFileRemove(lua_State *L)
     if (lua_gettop(L) != 2)
         return luaL_error(L, "System.fileDumpRemove(filePointer, linesCount) takes 2 arguments");
 
+    // Получаем указатель из userdata
+    if (!lua_isuserdata(L, 1))
+        return luaL_error(L, "First argument must be userdata");
+    
     char ***ptr = (char***)lua_touserdata(L, 1);
+    if (ptr == NULL || *ptr == NULL)
+        return luaL_error(L, "Invalid file pointer");
+
     char **fileLines = *ptr;
-    int i;
+    int linesCount = luaL_checkinteger(L, 2);
 
-    int linesCount = luaL_checknumber(L, 2);
-
-    fileLines[0] = NULL;
-
-    for (i = 1; i <= linesCount; i++)
+    // Освобождаем все строки
+    for (int i = 1; i <= linesCount; i++)
     {
-        if (fileLines[i])
+        if (fileLines[i] != NULL)
         {
             free(fileLines[i]);
-            fileLines[i] = NULL; 
+            fileLines[i] = NULL;
         }
     }
 
+    // Освобождаем массив указателей
     free(fileLines);
     *ptr = NULL;
 
-    lua_pop(L, 1);
     return 0;
 }
 
@@ -1496,12 +1527,21 @@ static int SYSTEM_dumpFileGetLine(lua_State *L)
     if (lua_gettop(L) != 2)
         return luaL_error(L, "System.fileDumpGetLine(filePointer, pos) takes 2 arguments");
 
-    char ***ptr = (char***)lua_touserdata(L, 1); 
-    char **fileLines = *ptr;
-    int index = luaL_checknumber(L, 2);
+    if (!lua_isuserdata(L, 1))
+        return luaL_error(L, "First argument must be userdata");
+    
+    char ***ptr = (char***)lua_touserdata(L, 1);
+    if (ptr == NULL || *ptr == NULL)
+        return luaL_error(L, "Invalid file pointer");
 
-    if (fileLines[index])
-        lua_pushstring(L, fileLines[index]); 
+    char **fileLines = *ptr;
+    int index = luaL_checkinteger(L, 2);
+
+    if (index < 1)
+        return luaL_error(L, "Line index must be positive");
+
+    if (fileLines[index] != NULL)
+        lua_pushstring(L, fileLines[index]);
     else
         lua_pushnil(L);
 
@@ -1582,6 +1622,7 @@ static const luaL_Reg SYSTEM_methods[] = {
     {"getTime",            SYSTEM_getTime},
     {"getOSV",             SYSTEM_getCFWVersion},
     {"getGameID",          SYSTEM_GetGAMEID},
+    {"getGameTitle",       SYSTEM_GetGameTitle},
     {"GC",                 SYSTEM_memclean},
     {"currentDir",         SYSTEM_curDir},
     {"listDir",            SYSTEM_listDir},
