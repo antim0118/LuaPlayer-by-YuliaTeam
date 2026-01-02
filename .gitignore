@@ -1,0 +1,6 @@
+*.o
+*.Identifier
+EBOOT.PBP
+PARAM.SFO
+*.elf
+*.prx

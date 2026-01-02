@@ -405,19 +405,19 @@ static int SYSTEM_getTime(lua_State *L)
     if(lua_gettop(L) != 0)
         return luaL_error(L, "System.getTime() takes no arguments");
 
-    pspTime time;
+    ScePspDateTime time;
     sceRtcGetCurrentClockLocalTime(&time);
 
     lua_newtable(L);
 
     pushFormattedTime("hour", time.hour, L);
-    pushFormattedTime("minutes", time.minutes, L);
-    pushFormattedTime("seconds", time.seconds, L);
+    pushFormattedTime("minutes", time.minute, L);
+    pushFormattedTime("seconds", time.second, L);
     pushFormattedTime("month", time.month, L);
     pushFormattedTime("day", time.day, L);
     
     lua_pushstring(L, "microseconds");
-    lua_pushnumber(L, time.microseconds);
+    lua_pushnumber(L, time.microsecond);
     lua_settable(L, -3);
 
     lua_pushstring(L, "year");

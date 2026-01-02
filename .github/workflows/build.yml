@@ -1,0 +1,44 @@
+name: LPYT
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install PSPSDK dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+        build-essential cmake pkgconf \
+        libreadline8 libusb-0.1 libgpgme11 \
+        libarchive-tools fakeroot wget
+
+    - name: Download latest PSPSDK
+      run: |
+        wget https://github.com/pspdev/pspdev/releases/latest/download/pspdev-ubuntu-latest-x86_64.tar.gz
+        mkdir -p "$HOME/pspdev"
+        tar -xvf pspdev-ubuntu-latest-x86_64.tar.gz -C "$HOME/pspdev" --strip-components=1
+
+    - name: Add PSPSDK to PATH
+      run: |
+        echo "PSPDEV=$HOME/pspdev" >> $GITHUB_ENV
+        echo "$HOME/pspdev/bin" >> $GITHUB_PATH
+
+    - name: Run make
+      run: make
+
+    - name: Upload build artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: EBOOT.PBP
+        path: EBOOT.PBP
+        retention-days: 90

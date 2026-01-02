@@ -22,7 +22,8 @@ LUA_OBJS = lua/graphics.o lua/LUA.o lua/ctrl.o lua/system.o lua/timer.o lua/audi
 
 OBJS = $(SRC_OBJS) $(LUA_SRC_OBJECTS) $(LUA_OBJS) LP.o
 
-INCDIR =
+INCDIR = include
+LIBDIR = lib
 CFLAGS = -O3 -G0 -Wall -Wno-trigraphs
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS) -c
