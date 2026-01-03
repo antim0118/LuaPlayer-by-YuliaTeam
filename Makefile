@@ -7,7 +7,6 @@ SRC_OBJS = libs/intra/intraFont.o libs/intra/libccc.o libs/ctrl/controls.o \
 	libs/aalib/pspaalibeffects.o libs/aalib/pspaalibwav.o \
 	libs/pmp/mpegbase.o libs/pmp/audiodecoder.o libs/pmp/avc.o libs/pmp/mem64.o libs/pmp/pmp.o \
 	libs/pmp/pmp_decode.o libs/pmp/pmp_file.o libs/pmp/pmp_play.o libs/pmp/pmp_read.o \
-	libs/Mp4/atom.o libs/Mp4/util.o libs/Mp4/mp4info.o
 
 LUA_SRC_OBJECTS = lua/src/lapi.o lua/src/lauxlib.o lua/src/lbaselib.o \
 	lua/src/lcode.o lua/src/ldblib.o lua/src/ldebug.o lua/src/ldo.o \
@@ -38,11 +37,9 @@ LIBS = -lpng -ljpeg -lpsppower -lz -lpspgu -lm -lc -lFLAC -lvorbisidec -lpspaudi
        -lpspkubridge -lpspvram -lbz2 -lfreetype -lpspvaudio
 
 EXTRA_TARGETS = EBOOT.PBP
-#PSP_EBOOT_TITLE = LPYT PMP TEST
-PSP_EBOOT_TITLE = TTF Player for DNTRNKPORNO #LuaPlayerYT 0.5
-PSP_EBOOT_ICON = res/momo_ayase.png #res/icon_cassette-2.png
-PSP_EBOOT_SND0 = res/OXXXYMIRON_DNTRNK.at3 #res/fitgirl.at3
-PSP_EBOOT_PIC1 = res/DNTRNK_BG.png #res/image_14.png
+PSP_EBOOT_TITLE = Minecraft: Story Mode Season One
+PSP_EBOOT_ICON = res/logo.png
+PSP_EBOOT_PIC1 = res/bg.png
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

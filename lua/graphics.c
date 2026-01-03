@@ -1486,72 +1486,6 @@ static int PMP_getSubs(lua_State *L)
     return 1;
 }
 
-#include "../libs/Mp4/mp4info.h"
-
-static int MP4_Info(lua_State *L)
-{
-    // Открываем MP4 файл
-    mp4info_t* info = mp4info_open(luaL_checkstring(L, 1));
-    if (!info) {
-        //printf("Error: Could not open MP4 file %s\n", filename);
-        return -1;
-    }
-
-    printf("\nMP4 File Information: %s\n", luaL_checkstring(L, 1));
-    printf("---------------------------------\n");
-    printf("Time Scale: %ld\n", info->time_scale);
-    printf("Duration: %ld\n", info->duration);
-    printf("Total Tracks: %ld\n", info->total_tracks);
-    printf("\n");
-
-    for (int i = 0; i < info->total_tracks; i++) {
-        mp4info_track_t* track = info->tracks[i];
-        
-        printf("Track %d:\n", i+1);
-        printf("  Type: ");
-        switch(track->type) {
-            case TRACK_AUDIO: printf("Audio\n"); break;
-            case TRACK_VIDEO: printf("Video\n"); break;
-            case TRACK_SYSTEM: printf("System\n"); break;
-            default: printf("Unknown\n");
-        }
-        
-        printf("  Time Scale: %ld\n", track->time_scale);
-        printf("  Duration: %ld\n", track->duration);
-        
-        if (track->type == TRACK_VIDEO) {
-            printf("  Video Type: 0x%08lX\n", track->video_type);
-            printf("  Width: %ld\n", track->width);
-            printf("  Height: %ld\n", track->height);
-            
-            if (track->avc_sps_size > 0) {
-                printf("  AVC Profile: 0x%02lX\n", track->avc_profile);
-                printf("  AVC SPS Size: %ld\n", track->avc_sps_size);
-                printf("  AVC PPS Size: %ld\n", track->avc_pps_size);
-                printf("  AVC NAL Prefix Size: %ld\n", track->avc_nal_prefix_size);
-            }
-        }
-        else if (track->type == TRACK_AUDIO) {
-            printf("  Audio Type: 0x%08lX\n", track->audio_type);
-            printf("  Channels: %ld\n", track->channels);
-            printf("  Sample Rate: %ld\n", track->samplerate);
-            printf("  Sample Bits: %ld\n", track->samplebits);
-        }
-        
-        printf("  STTS Entries: %ld\n", track->stts_entry_count);
-        printf("  CTTS Entries: %ld\n", track->ctts_entry_count);
-        printf("  STSS Entries: %ld\n", track->stss_entry_count);
-        printf("  STSC Entries: %ld\n", track->stsc_entry_count);
-        printf("  STSZ Entries: %ld\n", track->stsz_entry_count);
-        printf("  STCO Entries: %ld\n", track->stco_entry_count);
-        printf("\n");
-    }
-    
-    // Закрываем файл и освобождаем ресурсы
-    mp4info_close(info);
-
-    return 0;
-}
 
 static int PMP_pause(lua_State *L)
 {
@@ -1575,7 +1509,6 @@ static const luaL_Reg PMP_methods[] = {
     {"getTimeCode", PMP_getTimeCode},
     {"getSubs",     PMP_getSubs},
     {"pause",       PMP_pause},
-    {"Mp4_Info",    MP4_Info},
     //{"seek",        PMP_seek},
     {0, 0}
 };
