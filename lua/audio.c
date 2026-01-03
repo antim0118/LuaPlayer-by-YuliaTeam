@@ -154,18 +154,38 @@ static int AALIB_load(lua_State *L)
             return luaL_error(L, "sound.load() internal error");
 
         strcpy(LPYTMP3PATH, path);
-    }
-    else
-    {
+    } else {
         size_t len = strlen(path);
 
         if (len < 4 || (strcmp(path + len - 4, ".wav") != 0 && (len < 4 || strcmp(path + len - 4, ".at3") != 0) && (len < 4 || strcmp(path + len - 4, ".ogg") != 0)))
             return luaL_error(L, "sound.load() error: you're trying to load a non-wav/non-at3 file to a wav/at3 channel");
-        
-        int rez = AalibLoad((char*)path, channel, toRam);
 
-        if(rez != 0)
-            return luaL_error(L, "sound.load() error loading \"%s\", %d", path, rez);
+        int rez = AalibLoad((char *)path, channel, toRam);
+
+        if (rez != 0) {
+            if (rez == PSPAALIB_ERROR_INVALID_CHANNEL ||
+                rez == PSPAALIB_ERROR_WAV_INVALID_CHANNEL || rez == PSPAALIB_ERROR_AT3_INVALID_CHANNEL ||
+                rez == PSPAALIB_ERROR_OGG_INVALID_CHANNEL || rez == PSPAALIB_ERROR_FLAC_INVALID_CHANNEL)
+                return luaL_error(L, "sound.load() error loading \"%s\", INVALID CHANNEL (%d)", path, rez);
+            
+            if (rez == PSPAALIB_ERROR_WAV_INVALID_FILE || rez == PSPAALIB_ERROR_AT3_INVALID_FILE ||
+                rez == PSPAALIB_ERROR_OGG_INVALID_FILE || rez == PSPAALIB_ERROR_FLAC_INVALID_FILE)
+                return luaL_error(L, "sound.load() error loading \"%s\", INVALID FILE (%d)", path, rez);
+            
+            if (rez == PSPAALIB_ERROR_WAV_INSUFFICIENT_RAM || rez == PSPAALIB_ERROR_AT3_INSUFFICIENT_RAM || rez == PSPAALIB_ERROR_OGG_INSUFFICIENT_RAM)
+                return luaL_error(L, "sound.load() error loading \"%s\", INSUFFICIENT_RAM (%d)", path, rez);
+            
+            if (rez == PSPAALIB_ERROR_WAV_COMPRESSED_FILE)
+                return luaL_error(L, "sound.load() error loading \"%s\", WAV_COMPRESSED_FILE (%d)", path, rez);
+            if (rez == PSPAALIB_ERROR_AT3_GET_ID)
+                return luaL_error(L, "sound.load() error loading \"%s\", AT3_GET_ID (%d)", path, rez);
+            if (rez == PSPAALIB_ERROR_OGG_OPEN_CALLBACKS)
+                return luaL_error(L, "sound.load() error loading \"%s\", OGG_OPEN_CALLBACKS (%d)", path, rez);
+            if (rez == PSPAALIB_ERROR_FLAC_INVALID_SAMPLE_RATE)
+                return luaL_error(L, "sound.load() error loading \"%s\", FLAC_INVALID_SAMPLE_RATE (%d)", path, rez);
+            
+            return luaL_error(L, "sound.load() error loading \"%s\", ERROR CODE: %d", path, rez);
+        }
     }
 
     return 0;
