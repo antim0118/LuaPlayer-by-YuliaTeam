@@ -1,4 +1,4 @@
-# LuaPlayer-by-YuliaTeam
+# LuaPlayerYT-MCSM
 
 ## Как собрать?
 1. Установите PSPSDK как [указано в инструкции](https://pspdev.github.io/installation.html).
