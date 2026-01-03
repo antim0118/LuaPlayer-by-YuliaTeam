@@ -7,7 +7,7 @@
 git clone https://github.com/antim0118/LuaPlayer-by-YuliaTeam
 ```
 3. Откройте в терминале папку репозитория и запустите сборку:
-```sh
+```bash
 ./build.sh
 ```
 
