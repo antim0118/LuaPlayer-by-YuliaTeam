@@ -326,10 +326,10 @@ int LUA_init(lua_State *L)
     save_to_file("templuaFont.pgf", LUAFont, size_LUAFont);
     save_to_file("temp_system_sound.wav", system_sound, size_system_sound);
 
-    if(checkFileSum("templuaFont.pgf", 0x48437F2D) == 0 && checkFileSum("temp_system_sound.wav", 0xD78A8334) == 0)
+    if(checkFileSum("templuaFont.pgf", 0x48437F2D) == 0) // && checkFileSum("temp_system_sound.wav", 0xD78A8334) == 0)
     {
         luaFont = intraFontLoad("templuaFont.pgf", INTRAFONT_CACHE_LARGE | INTRAFONT_STRING_UTF8);
-        if(AalibLoad("temp_system_sound.wav", PSPAALIB_CHANNEL_WAV_32, TRUE) != 0) sceKernelExitGame();
+        //if(AalibLoad("temp_system_sound.wav", PSPAALIB_CHANNEL_WAV_32, TRUE) != 0) sceKernelExitGame();
     
         remove("templuaFont.pgf");
         remove("temp_system_sound.wav");

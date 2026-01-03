@@ -33,7 +33,7 @@ jobs:
         echo "$HOME/pspdev/bin" >> $GITHUB_PATH
 
     - name: Run make
-      run: make
+      run: ./build.sh
 
     - name: Upload build artifact
       if: success()
