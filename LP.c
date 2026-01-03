@@ -244,7 +244,7 @@ int main()
 
                 // set font, size, color of the error 
                 //intraFontSetStyle(luaFont, 1.f, BLACK, 0, 0.f, 0); <- original
-                intraFontSetStyle(luaFont, 1.f, WHITE, 0, 0.f, 0);
+                intraFontSetStyle(luaFont, 0.5, WHITE, 0, 0.f, 0);
                 
                 // display error-pic
 
