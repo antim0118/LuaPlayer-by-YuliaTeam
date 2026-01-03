@@ -36,7 +36,15 @@ LIBS = -lpng -ljpeg -lpsppower -lz -lpspgu -lm -lc -lFLAC -lvorbisidec -lpspaudi
        -lpspsystemctrl_kernel -lpsprtc -lpspgum -lpspvfpu -lpspusb -lpspusbstor \
        -lpspkubridge -lpspvram -lbz2 -lfreetype -lpspvaudio
 
+	   
+
 EXTRA_TARGETS = EBOOT.PBP
+
+#PSP_EBOOT_TITLE = LuaPlayerYT 0.5
+#PSP_EBOOT_ICON = res/logo_original.png
+#PSP_EBOOT_SND0 = res/fitgirl.at3
+#PSP_EBOOT_PIC1 = res/bg_original.png
+
 PSP_EBOOT_TITLE = Minecraft: Story Mode Season One
 PSP_EBOOT_ICON = res/logo.png
 PSP_EBOOT_PIC1 = res/bg.png
