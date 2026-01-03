@@ -695,9 +695,11 @@ intraFont* intraFontLoad(const char *filename, unsigned int options) {
 
 void intraFontUnload(intraFont *font) {
   if (!font) return;
-    if (font->filename) free(font->filename);
-    if (font->fontdata) free(font->fontdata);
+
+  if (font->filename) free(font->filename);
+  if (font->fontdata) free(font->fontdata);
   if (font->texture) free(font->texture);
+  
   if (font->fileType == FILETYPE_PGF) {
     if (font->charmap_compr) free(font->charmap_compr);
     if (font->charmap) free(font->charmap);
@@ -706,6 +708,7 @@ void intraFontUnload(intraFont *font) {
   } else { //FILETYPE_BWFON
     if (font->glyphBW) free(font->glyphBW);
   }
+  
   if (font) free(font);
   font = NULL;
 }
