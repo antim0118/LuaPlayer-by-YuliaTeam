@@ -32,7 +32,7 @@ jobs:
         echo "PSPDEV=$HOME/pspdev" >> $GITHUB_ENV
         echo "$HOME/pspdev/bin" >> $GITHUB_PATH
 
-    - name: Run make
+    - name: Run build.sh
       run: ./build.sh
 
     - name: Upload build artifact
