@@ -242,12 +242,13 @@ int main()
                 
                 bool USB_ACTIVE = FALSE;
 
-                intraFontSetStyle(luaFont, 1.f, BLACK, 0, 0.f, 0);
+                // set font, size, color of the error 
+                //intraFontSetStyle(luaFont, 1.f, BLACK, 0, 0.f, 0); <- original
+                intraFontSetStyle(luaFont, 1.f, WHITE, 0, 0.f, 0);
                 
+                // display error-pic
+
                 //chdir("/");
-                //save_to_file("temp_error_bg.png", error_data, size_error_data);
-                //g2dImage *ERR = g2dTexLoad("temp_error_bg.png", G2D_VOID);
-                //remove("temp_error_bg.png");
                 g2dImage *ERR = g2dTexLoad(NULL, error_data, size_error_data, G2D_VOID);
 
                 AalibPlay(PSPAALIB_CHANNEL_WAV_32);
@@ -276,7 +277,9 @@ int main()
                     g2dEnd();
 
                     intraFontActivate(luaFont, true);
-                    intraFontPrintColumn(luaFont,213,94,220,error);
+                    // print lua font
+                    //intraFontPrintColumn(luaFont,213,94,220,error); <- original
+                    intraFontPrintColumn(luaFont,180,94,220,error);
 
                     //printf("freeRam: %d\n", get_freeRam());
                     //intraFontPrintColumn(luaFont,230,94,220,error);
