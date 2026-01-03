@@ -568,7 +568,7 @@ static const luaL_Reg INTRAFONT_methods[] = {
 
 static const luaL_Reg INTRAFONT_metamethods[] = {
     //{"__tostring", INTRAFONT_tostring},
-    {"__gc", INTRAFONT_unload},
+    // {"__gc", INTRAFONT_unload},
     {0, 0}
 };
 
@@ -1082,7 +1082,7 @@ static const luaL_Reg GFX_methods2[] = {
 };
 
 static const luaL_Reg GFX_metamethods[] = {
-    {"__gc", G2D_texUnload},
+    // {"__gc", G2D_texUnload},
     {0, 0}
 };
 
@@ -1234,8 +1234,8 @@ static void getFrame(g2dImage *tex)
         }
     }
 
-    sceKernelDcacheWritebackInvalidateAll();
-    //sceKernelDcacheWritebackAll();
+    // sceKernelDcacheWritebackInvalidateAll();
+    sceKernelDcacheWritebackAll();
     //sceKernelDcacheWritebackRange(tex->data, tex->tw * tex->th * sizeof(uint32_t));
 }
 
