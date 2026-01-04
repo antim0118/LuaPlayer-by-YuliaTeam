@@ -11,4 +11,4 @@ git clone https://github.com/antim0118/LuaPlayer-by-YuliaTeam
 make clean && make
 ```
 
-*Примечание: в репозитории работает автосборщик EBOOT.PBP на каждое изменение. Версию, собранную из актуального кода, можно загрузить в [Actions](https://github.com/r3trob0y/LuaPlayer-by-YuliaTeam/actions?query=branch%3Amain), выбрав изменение.*
+*Примечание: в репозитории работает автосборщик EBOOT.PBP на каждое изменение. Версию, собранную из актуального кода, можно загрузить в [Actions](https://github.com/antim0118/LuaPlayer-by-YuliaTeam/actions?query=branch%3Amain), выбрав изменение.*
