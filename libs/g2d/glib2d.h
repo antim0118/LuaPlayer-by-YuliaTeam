@@ -505,6 +505,13 @@ void g2dResetCoord();
 void g2dSetCoordMode(g2dCoord_Mode mode);
 
 /**
+ * \brief Set origin coords.
+ *
+ * ???
+ */
+void g2dSetOriginXY(float x, float y);
+
+/**
  * \brief Gets the current position.
  * @param x Pointer to save the current x (in pixels).
  * @param y Pointer to save the current y (in pixels).

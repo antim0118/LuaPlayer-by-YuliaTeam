@@ -52,6 +52,7 @@ typedef struct
 {
   float x, y, z;
   float rot_x, rot_y; // Rotation center
+  float origin_x, origin_y;
   float rot, rot_sin, rot_cos;
   int crop_x, crop_y;
   int crop_w, crop_h;
@@ -549,16 +550,18 @@ void g2dAdd()
   CURRENT_OBJ = obj;
 
   // Coord mode stuff
-  CURRENT_OBJ.x -= (obj_coord_mode == G2D_UP_RIGHT ||
-                    obj_coord_mode == G2D_DOWN_RIGHT ?
-                    CURRENT_OBJ.scale_w :
-                   (obj_coord_mode == G2D_CENTER ?
-                    CURRENT_OBJ.scale_w/2 : 0));
-  CURRENT_OBJ.y -= (obj_coord_mode == G2D_DOWN_LEFT ||
-                    obj_coord_mode == G2D_DOWN_RIGHT ?
-                    CURRENT_OBJ.scale_h :
-                   (obj_coord_mode == G2D_CENTER ?
-                    CURRENT_OBJ.scale_h/2 : 0));
+  // CURRENT_OBJ.x -= (obj_coord_mode == G2D_UP_RIGHT ||
+  //                   obj_coord_mode == G2D_DOWN_RIGHT ?
+  //                   CURRENT_OBJ.scale_w :
+  //                  (obj_coord_mode == G2D_CENTER ?
+  //                   CURRENT_OBJ.scale_w/2 : 0));
+  // CURRENT_OBJ.y -= (obj_coord_mode == G2D_DOWN_LEFT ||
+  //                   obj_coord_mode == G2D_DOWN_RIGHT ?
+  //                   CURRENT_OBJ.scale_h :
+  //                  (obj_coord_mode == G2D_CENTER ?
+  //                   CURRENT_OBJ.scale_h/2 : 0));
+  CURRENT_OBJ.x -= CURRENT_OBJ.origin_x;
+  CURRENT_OBJ.y -= CURRENT_OBJ.origin_y;
 
   // Alpha stuff
   CURRENT_OBJ.color = G2D_MODULATE(CURRENT_OBJ.color,255,obj.alpha);
@@ -604,6 +607,8 @@ void g2dResetCoord()
   obj.x = DEFAULT_X;
   obj.y = DEFAULT_Y;
   obj.z = DEFAULT_Z;
+  obj.origin_x = DEFAULT_X;
+  obj.origin_y = DEFAULT_Y;
 }
 
 
@@ -611,6 +616,12 @@ void g2dSetCoordMode(g2dCoord_Mode mode)
 {
   if (mode > G2D_CENTER) return;
   obj_coord_mode = mode;
+}
+
+void g2dSetOriginXY(float x, float y)
+{
+  obj.origin_x = x * global_scale;
+  obj.origin_y = y * global_scale;
 }
 
 
