@@ -18,13 +18,13 @@ LUA_SRC_OBJECTS = lua/src/lapi.o lua/src/lauxlib.o lua/src/lbaselib.o \
 	lua/src/ltable.o lua/src/ltablib.o lua/src/ltm.o lua/src/lundump.o \
 	lua/src/lvm.o lua/src/lzio.o lua/src/print.o
 
-LUA_OBJS = lua/graphics.o lua/LUA.o lua/ctrl.o lua/system.o lua/timer.o lua/audio.o lua/usb.o lua/vfpu_math.o
+LUA_OBJS = lua/graphics.o lua/LUA.o lua/ctrl.o lua/system.o lua/lgn.o lua/timer.o lua/audio.o lua/usb.o lua/vfpu_math.o
 
 OBJS = $(SRC_OBJS) $(LUA_SRC_OBJECTS) $(LUA_OBJS) LP.o
 
 INCDIR = include
 LIBDIR = lib
-CFLAGS = -O3 -G0 -Wall -Wno-trigraphs
+CFLAGS = -O3 -G0 -Wall -Wno-trigraphs -Ofast -ffast-math -funroll-loops -fomit-frame-pointer
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS) -c
 
@@ -38,11 +38,10 @@ LIBS = -lpng -ljpeg -lpsppower -lz -lpspgu -lm -lc -lFLAC -lvorbisidec -lpspaudi
        -lpspkubridge -lpspvram -lbz2 -lfreetype -lpspvaudio
 
 EXTRA_TARGETS = EBOOT.PBP
-#PSP_EBOOT_TITLE = LPYT PMP TEST
-PSP_EBOOT_TITLE = TTF Player for DNTRNKPORNO #LuaPlayerYT 0.5
-PSP_EBOOT_ICON = res/momo_ayase.png #res/icon_cassette-2.png
-PSP_EBOOT_SND0 = res/OXXXYMIRON_DNTRNK.at3 #res/fitgirl.at3
-PSP_EBOOT_PIC1 = res/DNTRNK_BG.png #res/image_14.png
+PSP_EBOOT_TITLE = LGN PRERELEASE
+PSP_EBOOT_ICON = res/001.png
+PSP_EBOOT_SND0 = res/fitgirl.at3
+PSP_EBOOT_PIC1 = res/000.png
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
