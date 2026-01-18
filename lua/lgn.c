@@ -89,39 +89,51 @@ static int LGN_draw(lua_State *L) {
     return 0;
 }
 
-
-static int LGN_drawTitle(lua_State *L) {
-    int args = lua_gettop(L);
-    // if(args < 3 || args > 9)
-    //     return luaL_error(L, "LGN_drawTitle(....) takes 3, 4, 5, 6, 7, 8 or 9 arguments");
+static int LGN_drawMenuTitle(lua_State *L) {
+    // int args = lua_gettop(L);
+    // if(args != 6)
+    //     return luaL_error(L, "LGN_drawMenuTitle(....) takes 6 args");
 
     g2dImage *sprTitle1 = *toG2D(L, 1);
     g2dImage *sprTitle2 = *toG2D(L, 2);
     if (!sprTitle1 || !sprTitle2)
-        return luaL_error(L, "LGN_drawTitle() can't get the texture");
+        return luaL_error(L, "LGN_drawMenuTitle() can't get the texture");
 
-    int x = luaL_checknumber(L, 3);
-    int y = luaL_checknumber(L, 4);
+    float x = luaL_checknumber(L, 3);
+    float y = luaL_checknumber(L, 4);
+    
     int title2Count = luaL_checknumber(L, 5);
-    // u32 color = (args >= 4 && !lua_isnil(L, 4)) ? *toColor(L, 4) : 0;
+    if (title2Count < 1) title2Count = 1;
+    if (title2Count > COLORS2_LAST) title2Count = COLORS2_LAST;
+    
     float Angle = luaL_optnumber(L, 6, 0.0f);
-    // int a = luaL_optnumber(L, 6, 255);
-    // int AlMode = luaL_optnumber(L, 7, G2D_UP_LEFT);
-    // bool linear = (lua_toboolean(L, 8)) ? true : false;
-    // bool repeat = (lua_toboolean(L, 9)) ? true : false;
 
-    for (size_t i1 = 0; i1 < 10; i1 += 2) {
+    g2dBeginRects(sprTitle1);
+    g2dSetOriginXY(64 * 2.5f, 16 * 2.5f);
+    g2dSetRotation(Angle);
+    g2dSetScaleWH(sprTitle1->w * 2.5f, sprTitle1->h * 2.5f);
+    for (size_t i1 = 1; i1 <= 10; i1 += 2) {
+        g2dSetCoordXYZ(240 - x * i1, 80 - y * i1, 21.0f - i1);
+        g2dSetColor(colors1[i1 - 1]);
+        g2dAdd();
+    }
+    g2dEnd();
 
-        g2dBeginRects(sprTitle2);
-        // g2dSetTexLinear(false);
-        // g2dSetTexRepeat(false);
-        g2dSetOriginXY(64, 16);
-        g2dSetRotation(Angle);
-        g2dSetScaleWH(sprTitle1->w * 2.5f, sprTitle1->h * 2.5f);
-        for (size_t i2 = 0; i2 < title2Count; i2++) {
-            g2dSetCoordXY(240 - x * i2, 80 - y * i2);
-            // DrawSprite(, 64, 16, 2.5, 2.5, Angle, cols2[i]);
+    g2dBeginRects(sprTitle2);
+    // g2dSetTexLinear(false);
+    // g2dSetTexRepeat(false);
+    g2dSetOriginXY(64 * 2.5f, 16 * 2.5f);
+    g2dSetRotation(Angle);
+    g2dSetScaleWH(sprTitle2->w * 2.5f, sprTitle2->h * 2.5f);
+    for (size_t i2 = 1; i2 <= title2Count; i2++) {
+        g2dSetCoordXYZ(240 - x * i2, 80 - y * i2, 20.0f - i2);
+        g2dSetColor(colors2[i2 - 1]);
+        g2dAdd();
+    }
+    g2dEnd();
 
+    return 0;
+}
             g2dAdd();
         }
         g2dEnd();
@@ -148,8 +160,8 @@ static int LGN_drawTitle(lua_State *L) {
 }
 
 static const luaL_Reg LGN_methods[] = {
-    {"draw",        LGN_draw},
-    {"drawTitle",   LGN_drawTitle},
+    {"draw",            LGN_draw},
+    {"drawMenuTitle",   LGN_drawMenuTitle},
     {0, 0}
 };
 
