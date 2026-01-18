@@ -750,7 +750,7 @@ static int removeLoadedImage(g2dImage *tex)
             {
                 capacity--; // Уменьшаем емкость
                 loadedImages = realloc(loadedImages, capacity * sizeof(g2dImage *));
-                if (!loadedImages && imageCount > 0)
+            if (!loadedImages && imageCount > 0)
                 {
                     printf("Failed to reallocate memory");
                     sceKernelExitGame();

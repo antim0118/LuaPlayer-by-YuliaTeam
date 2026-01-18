@@ -3,7 +3,7 @@
 extern g2dImage **toG2D(lua_State *L, int index);
 extern g2dColor *toColor(lua_State *L, int index);
 
-/* (12+10+12) * 4 = 136 bytes */
+/* (10+10+11) * 4 = 124 bytes */
 static u32 colors1[10] = { 0 };
 static u32 colors2[10] = { 0 };
 static u32 colors3[11] = { 0 };
@@ -229,10 +229,10 @@ static int LGN_drawMenuTrees(lua_State *L) {
 }
 
 static const luaL_Reg LGN_methods[] = {
-    {"draw",            LGN_draw},
-    {"drawMenuTitle",   LGN_drawMenuTitle},
-    {"drawMenuButtons",  LGN_drawMenuButtons},
-    {"drawMenuTrees",   LGN_drawMenuTrees},
+    {"draw",                LGN_draw},
+    {"drawMenuTitle",       LGN_drawMenuTitle},
+    {"drawMenuButtons",     LGN_drawMenuButtons},
+    {"drawMenuTrees",       LGN_drawMenuTrees},
     {0, 0}
 };
 
