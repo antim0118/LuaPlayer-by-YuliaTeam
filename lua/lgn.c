@@ -3,11 +3,51 @@
 extern g2dImage **toG2D(lua_State *L, int index);
 extern g2dColor *toColor(lua_State *L, int index);
 
+/* (12+10+12) * 4 = 136 bytes */
+static u32 colors1[10] = { 0 };
+static u32 colors2[10] = { 0 };
+static u32 colors3[11] = { 0 };
 
+static u32 colorLerp(u32 col1, u32 col2, float val) {
+    int r1 = G2D_GET_R(col1), g1 = G2D_GET_G(col1), b1 = G2D_GET_B(col1);
+    int r2 = G2D_GET_R(col2), g2 = G2D_GET_G(col2), b2 = G2D_GET_B(col2);
+
+    // int r = (r2 - r1) * val + r1;
+    // printf("lerp 2\n");
+    // int g = (g2 - g1) * val + g1;
+    // printf("lerp 3\n");
+    // int b = (b2 - b1) * val + b1;
+
+    int ival = (int)(val * 255.0f);
+
+    int r = ((r2 - r1) * ival + r1 * 255) / 255;
+    int g = ((g2 - g1) * ival + g1 * 255) / 255;
+    int b = ((b2 - b1) * ival + b1 * 255) / 255;
+
+    r = (r < 0 ? 0 : (r > 255 ? 255 : r));
+    g = (g < 0 ? 0 : (g > 255 ? 255 : g));
+    b = (b < 0 ? 0 : (b > 255 ? 255 : b));
+
+    return G2D_RGBA(r, g, b, 255);
 }
 
+#define COLORS2_LAST 7
 
+static void generateColors() {
+    u32 col1 = G2D_RGBA(255, 53, 244, 255), col2 = G2D_RGBA(107, 230, 255, 255);
+    for (size_t i = 1; i <= 10; i++) {
+        colors1[i - 1] = colorLerp(col1, col2, (float)i / 10.0f);
+    }
 
+    u32 c_red = G2D_RGBA(255, 0, 0, 255), c_white = G2D_RGBA(255, 255, 255, 255);
+    for (size_t i = 1; i <= COLORS2_LAST; i++) {
+        colors2[i - 1] = colorLerp(c_red, c_white, (float)i / 10.0f);
+    }
+
+    col1 = G2D_RGBA(188, 57, 211, 255), col2 = c_white;
+    for (size_t i = 0; i < 11; i++) {
+        colors3[i] = colorLerp(col1, col2, (float)i / 10.0f);
+    }
 }
 
 static int LGN_draw(lua_State *L) {
@@ -114,6 +154,8 @@ static const luaL_Reg LGN_methods[] = {
 };
 
 int LGN_init(lua_State *L) {
+    generateColors();
+
     luaL_register(L, "LGN", LGN_methods);
 
     return 0;
