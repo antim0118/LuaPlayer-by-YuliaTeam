@@ -564,7 +564,7 @@ void g2dAdd()
   CURRENT_OBJ.y -= CURRENT_OBJ.origin_y;
 
   // Alpha stuff
-  CURRENT_OBJ.color = G2D_MODULATE(CURRENT_OBJ.color,255,obj.alpha);
+  CURRENT_OBJ.color = G2D_MODULATE(CURRENT_OBJ.color, 255, obj.alpha);
 }
 
 
