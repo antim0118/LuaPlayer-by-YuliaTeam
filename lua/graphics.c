@@ -891,8 +891,8 @@ static int G2D_getH(lua_State *L)
 static int G2D_draw(lua_State *L)
 {
     int args = lua_gettop(L);
-    if (args < 3 || args > 15 || (args == 4 && luaL_checknumber(L, 4) <= 0))
-        return luaL_error(L, "Image.draw(texture, x, y, [width], [height], [color], [srcx], [srcy], [srcw], [srch], [rotation], [alpha], [alMode], [GU_LINEAR], [GU_REPEAT]) takes 3, 5, 6, 10, 11, 12, 13, 14 or 15 arguments");
+    if (args < 3 || args > 16 || (args == 4 && luaL_checknumber(L, 4) <= 0))
+        return luaL_error(L, "Image.draw(texture, x, y, [width], [height], [color], [srcx], [srcy], [srcw], [srch], [rotation], [alpha], [origin_x], [origin_y], [GU_LINEAR], [GU_REPEAT]) takes 3, 5, 6, 10, 11, 12, 13, 14, 15 or 16 arguments");
 
     g2dImage *img = *toG2D(L, 1);
     if (!img || !isImageLoaded(img))
@@ -905,12 +905,13 @@ static int G2D_draw(lua_State *L)
     int srcw = luaL_optnumber(L, 9, img->w), srch = luaL_optnumber(L, 10, img->h);
     float Angle = luaL_optnumber(L, 11, 0.0f);
     int a = luaL_optnumber(L, 12, 255);
-    int AlMode = luaL_optnumber(L, 13, G2D_UP_LEFT);
-    bool linear = (lua_toboolean(L, 14)) ? true : false;
-    bool repeat = (lua_toboolean(L, 15)) ? true : false;
+    int origin_x = luaL_optnumber(L, 13, 0);
+    int origin_y = luaL_optnumber(L, 14, 0);
+    bool linear = (lua_toboolean(L, 15)) ? true : false;
+    bool repeat = (lua_toboolean(L, 16)) ? true : false;
 
     g2dBeginRects(img);
-    g2dSetCoordMode(AlMode);
+    g2dSetOriginXY(origin_x, origin_y);
     g2dSetTexLinear(linear);
     g2dSetTexRepeat(repeat);
     g2dSetCoordXY(x, y);
@@ -930,8 +931,8 @@ static int G2D_draw(lua_State *L)
 static int G2D_draweasy(lua_State *L)
 {
     int args = lua_gettop(L);
-    if(args < 3 || args > 9)
-        return luaL_error(L, "Image.draweasy(texture, x, y, [color], [rotation], [alpha], [alMode], [GU_LINEAR], [GU_REPEAT]) takes 3, 4, 5, 6, 7, 8 or 9 arguments");
+    if(args < 3 || args > 10)
+        return luaL_error(L, "Image.draweasy(texture, x, y, [color], [rotation], [alpha], [origin_x], [origin_y], [GU_LINEAR], [GU_REPEAT]) takes 3, 4, 5, 6, 7, 8, 9 or 10 arguments");
 
     g2dImage *img = *toG2D(L, 1);
     if(!img || !isImageLoaded(img))
@@ -942,12 +943,13 @@ static int G2D_draweasy(lua_State *L)
     u32 color = (args >= 4 && !lua_isnil(L, 4)) ? *toColor(L, 4) : 0;
     float Angle = luaL_optnumber(L, 5, 0.0f);
     int a = luaL_optnumber(L, 6, 255);
-    int AlMode = luaL_optnumber(L, 7, G2D_UP_LEFT);
-    bool linear = (lua_toboolean(L, 8)) ? true : false;
-    bool repeat = (lua_toboolean(L, 9)) ? true : false;
+    int origin_x = luaL_optnumber(L, 7, 0);
+    int origin_y = luaL_optnumber(L, 8, 0);
+    bool linear = (lua_toboolean(L, 9)) ? true : false;
+    bool repeat = (lua_toboolean(L, 10)) ? true : false;
 
     g2dBeginRects(img);
-    g2dSetCoordMode(AlMode);
+    g2dSetOriginXY(origin_x, origin_y);
     g2dSetTexLinear(linear);
     g2dSetTexRepeat(repeat);
     g2dSetCoordXY(x, y);
