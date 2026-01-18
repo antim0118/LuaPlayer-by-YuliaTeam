@@ -3,20 +3,11 @@
 extern g2dImage **toG2D(lua_State *L, int index);
 extern g2dColor *toColor(lua_State *L, int index);
 
-static int LGN_exit(lua_State *L) {
-    if (lua_gettop(L) != 0)
-        return luaL_error(L, "LGN.exit() takes no arguments");
 
-    return 0;
 }
 
-static int LGN_delay(lua_State *L) {
-    if (lua_gettop(L) != 1)
-        return luaL_error(L, "LGN.sleep(ms) takes 1 argument");
 
-    sceKernelDelayThreadCB(luaL_checknumber(L, 1) * 1000);
 
-    return 0;
 }
 
 static int LGN_draw(lua_State *L) {
@@ -58,17 +49,6 @@ static int LGN_draw(lua_State *L) {
     return 0;
 }
 
-void DrawSprite(g2dImage *texData, int x, int y, int originX, int originY, int xscale, int  yscale, int  rot, int  color, int  alpha) {
-    // FILE *file = fopen(filename, "wb");
-    // if (file == NULL) {
-    //     perror("Не удалось открыть файл для записи");
-    //     return;
-    // }
-
-    // fwrite(data, sizeof(unsigned char), size, file);
-
-    // fclose(file);
-}
 
 static int LGN_drawTitle(lua_State *L) {
     int args = lua_gettop(L);
@@ -128,9 +108,6 @@ static int LGN_drawTitle(lua_State *L) {
 }
 
 static const luaL_Reg LGN_methods[] = {
-    {"exit",        LGN_exit},
-    {"quit",        LGN_exit},
-    {"sleep",       LGN_delay},
     {"draw",        LGN_draw},
     {"drawTitle",   LGN_drawTitle},
     {0, 0}
