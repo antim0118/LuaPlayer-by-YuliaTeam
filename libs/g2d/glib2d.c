@@ -1637,7 +1637,7 @@ g2dImage* g2dTexLoad(char path[], unsigned char* data, size_t size, g2dTex_Mode 
       #endif
     }
 
-    // fclose(fp);
+    fclose(fp);
   }
 
   if (tex == NULL) return NULL;
