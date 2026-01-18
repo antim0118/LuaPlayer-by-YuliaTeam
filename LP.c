@@ -55,6 +55,7 @@
 #include "lua/usb.h"
 #include "lua/vfpu_math.h"
 #include "lua/lgn.h"
+#include "lua/batch.h"
 
 PSP_MODULE_INFO("Lua Player YT", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
@@ -191,6 +192,7 @@ void initEngine(lua_State *L) {
     PMP_init(L);
     SYSTEM_init(L);
     LGN_init(L);
+    BATCH_init(L);
     TIMER_init(L);
     USB_init(L);
     VFPU_init(L);

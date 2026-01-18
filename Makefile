@@ -18,7 +18,7 @@ LUA_SRC_OBJECTS = lua/src/lapi.o lua/src/lauxlib.o lua/src/lbaselib.o \
 	lua/src/ltable.o lua/src/ltablib.o lua/src/ltm.o lua/src/lundump.o \
 	lua/src/lvm.o lua/src/lzio.o lua/src/print.o
 
-LUA_OBJS = lua/graphics.o lua/LUA.o lua/ctrl.o lua/system.o lua/lgn.o lua/timer.o lua/audio.o lua/usb.o lua/vfpu_math.o
+LUA_OBJS = lua/graphics.o lua/LUA.o lua/ctrl.o lua/system.o lua/lgn.o lua/batch.o lua/timer.o lua/audio.o lua/usb.o lua/vfpu_math.o
 
 OBJS = $(SRC_OBJS) $(LUA_SRC_OBJECTS) $(LUA_OBJS) LP.o
 
