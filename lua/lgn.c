@@ -134,27 +134,96 @@ static int LGN_drawMenuTitle(lua_State *L) {
 
     return 0;
 }
+
+static int LGN_drawMenuButtons(lua_State *L) {
+    // int args = lua_gettop(L);
+    // if(args != 6)
+    //     return luaL_error(L, "LGN_drawMenuButtons(....) takes 6 arguments");
+
+    g2dImage *sprMenu = *toG2D(L, 1);
+    g2dImage *sprMenuOutline = *toG2D(L, 2);
+    if (!sprMenu || !sprMenuOutline)
+        return luaL_error(L, "LGN_drawMenuButtons() can't get the texture");
+
+    int selectedMenu = luaL_checknumber(L, 3);
+    int selectedMenuLoop = luaL_checknumber(L, 4);
+    u32 menuColor = *toColor(L, 5);
+    float View_Rotation = luaL_checknumber(L, 6);
+
+    /* OUTLINE */
+    g2dBeginRects(sprMenuOutline);
+    g2dSetOriginXY(128, 0);
+    g2dSetRotation(View_Rotation);
+    g2dSetScaleWH(256, 30);
+    g2dSetCropWH(256, 30);
+    g2dSetAlpha(200);
+    for (size_t i = 0; i <= 2; i += 1) {
+        g2dSetCropXY(0, i * 30);
+
+        g2dSetCoordXY(240, 120 + i * 30);
+
+        g2dResetColor();
+        g2dAdd();
+    }
+    g2dEnd();
+
+    /* MAIN */
+    g2dBeginRects(sprMenu);
+    g2dSetOriginXY(128, 0);
+    g2dSetRotation(View_Rotation);
+    g2dSetScaleWH(256, 30);
+    g2dSetCropWH(256, 30);
+    for (size_t i = 0; i <= 2; i += 1) {
+        g2dSetCropXY(0, i * 30);
+
+        if (i == selectedMenu) {
+            for (size_t l = 0; l <= selectedMenuLoop; l += 2) {
+                g2dSetCoordXY(240 + l, 120 + i * 30);
+                g2dSetColor(colors3[l]);
+                g2dAdd();
+            }
+        } else {
+            g2dSetCoordXY(240, 120 + i * 30);
+            g2dSetColor(menuColor);
             g2dAdd();
         }
-        g2dEnd();
-
-        g2dBeginRects(sprTitle1);
-        g2dSetRotation(Angle);
-        // DrawSprite(sprTitle1, 240 - x * i, 80 - y * i, 64, 16, 2.5, 2.5, Angle, cols1[i]);
-        g2dEnd();
-
-        // g2dSetCoordMode(AlMode);
-        // g2dSetTexLinear(linear);
-        // g2dSetTexRepeat(repeat);
-        // g2dSetCoordXY(x, y);
-        // g2dSetScaleWH(w, h);
-        // g2dSetRotation(Angle);
-        // if (color != 0)
-        //     g2dSetColor(color);
-        // g2dSetAlpha(a);
-        // g2dAdd();
-        // g2dEnd();
     }
+    g2dEnd();
+
+    return 0;
+}
+
+static int LGN_drawMenuTrees(lua_State *L) {
+    // int args = lua_gettop(L);
+    // if (args != 3)
+    //     return luaL_error(L, "LGN_drawMenuTrees(....) takes 3 agrumenta!");
+
+    g2dImage *sprTree = *toG2D(L, 1);
+    if (!sprTree)
+        return luaL_error(L, "LGN_drawMenuTrees() can't get the texture");
+
+    float bgsiner1 = luaL_checknumber(L, 2);
+    float View_Rotation = luaL_checknumber(L, 3);
+
+    g2dBeginRects(sprTree);
+    g2dSetRotation(View_Rotation);
+    g2dSetAlpha(200);
+    for (size_t i = 1; i <= 4; i++) {
+        float moveX = pow(fmod(bgsiner1 / 2 + i * 1, 4.0f), 2) * 2;
+        float moveY = moveX * 10;
+        float scale = moveX / 8;
+
+        g2dSetCoordXY(480 / 2 - 12 - moveX * 8, 272 / 2 + 20 + moveY);
+        g2dSetOriginXY(82 * scale, 200 * scale);
+        g2dSetScaleWH(sprTree->w * scale, sprTree->h * scale);
+        g2dAdd();
+
+        g2dSetCoordXY(480 / 2 + 12 + moveX * 8, 272 / 2 + 20 + moveY);
+        g2dSetOriginXY(82 * -scale, 200 * scale);
+        g2dSetScaleWH(sprTree->w * -scale, sprTree->h * scale);
+        g2dAdd();
+    }
+    g2dEnd();
 
     return 0;
 }
@@ -162,6 +231,8 @@ static int LGN_drawMenuTitle(lua_State *L) {
 static const luaL_Reg LGN_methods[] = {
     {"draw",            LGN_draw},
     {"drawMenuTitle",   LGN_drawMenuTitle},
+    {"drawMenuButtons",  LGN_drawMenuButtons},
+    {"drawMenuTrees",   LGN_drawMenuTrees},
     {0, 0}
 };
 
