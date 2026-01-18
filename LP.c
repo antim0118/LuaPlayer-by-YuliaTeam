@@ -197,6 +197,8 @@ void initEngine(lua_State *L) {
 }
 
 int main() {
+    clock_t start = clock();
+
     LPYT_Config config;
 
     strncpy(config.main_script, "script.lua", sizeof(config.main_script) - 1);
@@ -219,6 +221,10 @@ int main() {
     FILE *f = fopen(config.main_script, "r");
     if (!f) sceKernelExitGame();
     fclose(f);
+
+    clock_t end = clock();
+    float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+    printf("LuaPlayerYT initialized in %.2f sec.\n", seconds);
 
     while (1) {
         if (luaL_loadfile(L, config.main_script) == 0) {
