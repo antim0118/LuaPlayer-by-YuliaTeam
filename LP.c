@@ -263,7 +263,7 @@ int main() {
                         USB_ACTIVE = !USB_ACTIVE;
                     }
 
-                    g2dClear(G2D_RGBA(255, 255, 255, 255));
+                    g2dClear(WHITE);
 
                     g2dBeginRects(ERR);
                     g2dAdd();
