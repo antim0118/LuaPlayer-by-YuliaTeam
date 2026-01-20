@@ -79,6 +79,30 @@ static int L_createObject(lua_State *L) {
         objects[index].ref_oncreate = luaL_ref(L, LUA_REGISTRYINDEX);
     }
 
+    // onUpdate
+    if (args >= 2) {
+        // *!
+        if (!lua_isfunction(L, 2)) { //сверка типов
+            return luaL_error(L, "2st argument != function");
+        }
+
+        if (objects[index].ref_onupdate != -1)
+            luaL_unref(L, LUA_REGISTRYINDEX, objects[index].ref_onupdate);
+        objects[index].ref_onupdate = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+
+    // onDraw
+    if (args >= 3) {
+        // *!
+        if (!lua_isfunction(L, 3)) { //сверка типов
+            return luaL_error(L, "3st argument != function");
+        }
+
+        if (objects[index].ref_ondraw != -1)
+            luaL_unref(L, LUA_REGISTRYINDEX, objects[index].ref_ondraw);
+        objects[index].ref_ondraw = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+
     //TODO: onUpdate/onDraw
 
     if (objects_lastnum < index)
