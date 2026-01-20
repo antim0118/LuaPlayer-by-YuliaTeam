@@ -296,7 +296,7 @@ static const luaL_Reg L_metamethods[] = {
 
 
 int GAMEOBJECT_init(lua_State *L) {
-    L_clearObjects(NULL);
+    L_clearObjects(L);
     // luaL_register(L, "GameObject", L_methods);
     UserdataRegister("GameObject", L_methods, L_metamethods);
 
