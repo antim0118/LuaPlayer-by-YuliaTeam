@@ -891,8 +891,8 @@ static int G2D_getH(lua_State *L)
 static int G2D_draw(lua_State *L)
 {
     int args = lua_gettop(L);
-    if (args < 3 || args > 16 || (args == 4 && luaL_checknumber(L, 4) <= 0))
-        return luaL_error(L, "Image.draw(texture, x, y, [width], [height], [color], [srcx], [srcy], [srcw], [srch], [rotation], [alpha], [origin_x], [origin_y], [GU_LINEAR], [GU_REPEAT]) takes 3, 5, 6, 10, 11, 12, 13, 14, 15 or 16 arguments");
+    if (args < 3 || args > 17 || (args == 4 && luaL_checknumber(L, 4) <= 0))
+        return luaL_error(L, "Image.draw(texture, x, y, [width], [height], [color], [srcx], [srcy], [srcw], [srch], [rotation], [alpha], [origin_x], [origin_y], [GU_LINEAR], [GU_REPEAT], [BLEND]) takes 3, 5, 6, 10, 11, 12, 13, 14, 15, 16 or 17 arguments");
 
     g2dImage *img = *toG2D(L, 1);
     if (!img || !isImageLoaded(img))
@@ -909,6 +909,7 @@ static int G2D_draw(lua_State *L)
     int origin_y = luaL_optnumber(L, 14, 0);
     bool linear = (lua_toboolean(L, 15)) ? true : false;
     bool repeat = (lua_toboolean(L, 16)) ? true : false;
+    int blend = luaL_optnumber(L, 17, -1);
 
     g2dBeginRects(img);
     g2dSetOriginXY(origin_x, origin_y);
@@ -922,6 +923,8 @@ static int G2D_draw(lua_State *L)
     if(color != 0)
         g2dSetColor(color);
     g2dSetAlpha(a);
+    if (blend != -1)
+        g2dSetTexBlendMode(blend);
     g2dAdd();
     g2dEnd();
 

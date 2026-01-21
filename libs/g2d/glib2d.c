@@ -75,6 +75,7 @@ static int obj_list_size;
 static bool obj_begin = false, obj_line_strip;
 static bool obj_use_z, obj_use_vert_color, obj_use_blend, obj_use_rot,
             obj_use_tex_linear, obj_use_tex_repeat, obj_use_int;
+static int obj_blend_mode;
 static g2dCoord_Mode obj_coord_mode;
 static int obj_colors_count;
 static g2dImage* obj_tex;
@@ -235,6 +236,7 @@ void _g2dBeginCommon()
   obj_use_z = false;
   obj_use_vert_color = false;
   obj_use_blend = false;
+  obj_blend_mode = -1;
   obj_use_rot = false;
   obj_use_int = false;
   obj_colors_count = 0;
@@ -476,6 +478,23 @@ void g2dEnd()
   else                    sceGuDisable(GU_DEPTH_TEST);
   if (obj_use_blend)      sceGuEnable(GU_BLEND);
   else                    sceGuDisable(GU_BLEND);
+  if (obj_blend_mode != -1) {
+    switch (obj_blend_mode) { //TODO: отрефакторить, заюзать енамы или типа того
+      case 0: //alpha (дефолт)
+        sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
+        break;
+      case 1: //add
+        sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_FIX, 0, 0xFFFFFFFF);
+        break;
+      case 2: //sub dst - вычесть источник из буфера
+        //это вроде как дефолтное вычитание, хоть написано и обратное (буквально написано "обратное")
+        sceGuBlendFunc(GU_REVERSE_SUBTRACT, GU_SRC_ALPHA, GU_FIX, 0, 0xFFFFFFFF);
+        break;
+      case 3: //sub src
+        sceGuBlendFunc(GU_SUBTRACT, GU_SRC_ALPHA, GU_FIX, 0, 0xFFFFFFFF); 
+        break;
+    }
+  }
   if (obj_use_vert_color) sceGuColor(WHITE);
   else                    sceGuColor(obj_list[0].color);
   if (obj_tex == NULL)    sceGuDisable(GU_TEXTURE_2D);
@@ -926,6 +945,14 @@ void g2dSetTexBlend(bool use)
   if (obj_tex == NULL) return;
   if (!obj_tex->can_blend) return;
   obj_use_blend = use;
+}
+
+void g2dSetTexBlendMode(int blendmode)
+{
+  if (obj_tex == NULL) return;
+  if (!obj_tex->can_blend) return;
+  obj_blend_mode = blendmode;
+  obj_use_blend = true;
 }
 
 

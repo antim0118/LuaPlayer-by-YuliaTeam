@@ -867,6 +867,13 @@ void g2dSetTexRepeat(bool use);
 void g2dSetTexBlend(bool use);
 
 /**
+ * \brief ?
+ *
+ * ?
+ */
+void g2dSetTexBlendMode(int blendmode);
+
+/**
  * \brief Use the bilinear filter with the texture.
  * @param use true to activate (better look, by default).
               false to desactivate (better performance).
