@@ -824,6 +824,21 @@ static int G2D_texUnload(lua_State *L)
     return luaL_error(L, "Image not found in loaded images");
 }
 
+static int G2D_texToString(lua_State *L)
+{
+    if(lua_gettop(L) != 1)
+        return luaL_error(L, "Image.unload(texture) takes 1 arguments");
+
+    g2dImage *img = *toG2D(L, 1);
+    if(!img)
+        return luaL_error(L, "Image.unload() can't get the texture");
+
+    lua_Number size = (img->tw * img->th * 4.0f) / 1024.0f;
+    lua_pushfstring(L, "Image(%dx%d, %f Kb)", img->w, img->h, size);
+
+    return 1;
+}
+
 void G2D_texUnloadAll()
 {
     int i;
@@ -1094,6 +1109,11 @@ static const luaL_Reg GFX_metamethods[] = {
 int GRAPHICS_init(lua_State *L)
 {
     g2dInit();
+
+    luaL_newmetatable(L, "G2D");
+    lua_pushcfunction(L, G2D_texToString);
+    lua_setfield(L, -2, "__tostring");
+    lua_pop(L, 1);
 
     luaL_register(L, "screen", GFX_methods);
     //luaL_register(L, "Image", GFX_methods2);
