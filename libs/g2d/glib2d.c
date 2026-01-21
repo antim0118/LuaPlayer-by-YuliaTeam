@@ -949,8 +949,6 @@ void g2dSetTexBlend(bool use)
 
 void g2dSetTexBlendMode(int blendmode)
 {
-  if (obj_tex == NULL) return;
-  if (!obj_tex->can_blend) return;
   obj_blend_mode = blendmode;
   obj_use_blend = true;
 }
