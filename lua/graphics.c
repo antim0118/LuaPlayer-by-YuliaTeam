@@ -1078,6 +1078,43 @@ static int G2D_drawCircleOnTex(lua_State *L)
     return 0;
 }
 
+static int G2D_drawRectangleColor(lua_State *L)
+{
+    int args = lua_gettop(L);
+    if (args != 10)
+        return luaL_error(L, "screen.drawRectangleColor(x1, y1, x2, y2, col1, col2, col3, col4, outline, BLEND) takes 10 arguments");
+
+    int x1 = luaL_checknumber(L, 1);
+    int y1 = luaL_checknumber(L, 2);
+    int x2 = luaL_checknumber(L, 3);
+    int y2 = luaL_checknumber(L, 4);
+    u32 col1 = *toColor(L, 5);
+    u32 col2 = *toColor(L, 6);
+    u32 col3 = *toColor(L, 7);
+    u32 col4 = *toColor(L, 8);
+    bool outline = (lua_toboolean(L, 9)) ? true : false;
+    int blend = luaL_optnumber(L, 10, -1);
+    int rotation = 0;
+    int alpha = 255;
+
+    if (outline)
+        return luaL_error(L, "screen.drawRectangleColor(...) - outline is not implemented xd");
+
+
+    g2dBeginQuads(NULL);
+    if (blend != -1)
+        g2dSetTexBlendMode(blend);
+    
+    g2dSetCoordXY(x1, y1);    g2dSetColor(col1);    g2dAdd(); // TL
+    g2dSetCoordXY(x2, y1);    g2dSetColor(col2);    g2dAdd(); // TR
+    g2dSetCoordXY(x2, y2);    g2dSetColor(col3);    g2dAdd(); // BR
+    g2dSetCoordXY(x1, y2);    g2dSetColor(col4);    g2dAdd(); // BL
+    
+    g2dEnd();
+
+    return 0;
+}
+
 static const luaL_Reg GFX_methods[] = {
     {"clear",        G2D_clear},
     {"flip",         G2D_flip},
@@ -1085,6 +1122,7 @@ static const luaL_Reg GFX_methods[] = {
     {"drawLine",     G2D_drawLine},
     {"drawCircle",   G2D_drawCircle},
     {"drawTriangle", G2D_drawTriangle},
+    {"drawRectangleColor", G2D_drawRectangleColor},
     //{"drawCube",     G2D_drawCube},
     {0, 0}
 };
