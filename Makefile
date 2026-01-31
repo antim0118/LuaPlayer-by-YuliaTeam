@@ -1,6 +1,6 @@
 TARGET = LuaPlayerYT
 
-SRC_OBJS = libs/intra/intraFont.o libs/intra/libccc.o libs/ctrl/controls.o \
+SRC_OBJS = libs/callbacks.o libs/intra/intraFont.o libs/intra/libccc.o libs/ctrl/controls.o \
 	libs/g2d/glib2d.o libs/intra/libtext.o libs/vfpu_math.o \
 	libs/aalib/pspaalib.o libs/aalib/pspaalibat3.o \
 	libs/aalib/pspaalibogg.o libs/aalib/pspaalibflac.o libs/aalib/pspaalibcommon.o \
@@ -18,7 +18,9 @@ LUA_SRC_OBJECTS = lua/src/lapi.o lua/src/lauxlib.o lua/src/lbaselib.o \
 	lua/src/ltable.o lua/src/ltablib.o lua/src/ltm.o lua/src/lundump.o \
 	lua/src/lvm.o lua/src/lzio.o lua/src/print.o
 
-LUA_OBJS = lua/graphics.o lua/LUA.o lua/ctrl.o lua/system.o lua/lgn.o lua/batch.o lua/gameobject.o lua/timer.o lua/audio.o lua/usb.o lua/vfpu_math.o
+LUA_OBJS = lua/graphics.o lua/LUA.o lua/ctrl.o lua/system.o \
+	lua/lgn.o lua/batch.o lua/gameobject.o lua/gamemaker.o \
+	lua/timer.o lua/audio.o lua/usb.o lua/vfpu_math.o
 
 OBJS = $(SRC_OBJS) $(LUA_SRC_OBJECTS) $(LUA_OBJS) LP.o
 
