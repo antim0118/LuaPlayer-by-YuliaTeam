@@ -38,6 +38,7 @@
 #- jonny & Raphael for PMP Mod ---------------------------------------------------------------------------------------------------------------#
 #- InsertWittyName & MK2k for PGE source code ------------------------------------------------------------------------------------------------#
 #- Rinnegatamante & Nanni for example of awesome Lua Player ----------------------------------------------------------------------------------#
+#- Andrei - govna popei ----------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -142,36 +143,6 @@ int ReadConfig(const char *filename, LPYT_Config *config) {
 
     fclose(file);
     return 1;
-}
-
-void LPYT_FastFinish() {
-    g2dTerm();
-    intraFontShutdown();
-    pmp_shutdown();
-    sceKernelExitGame();
-}
-
-int exit_callback(int arg1, int arg2, void *common) {
-    LPYT_FastFinish();
-
-    return 0;
-}
-
-int CallbackThread(SceSize args, void *argp) {
-    int cbid = sceKernelCreateCallback("Exit Callback", exit_callback, NULL);
-    sceKernelRegisterExitCallback(cbid);
-    sceKernelSleepThreadCB();
-
-    return 0;
-}
-
-int SetupCallbacks(void) {
-    int thid = sceKernelCreateThread("update_thread", CallbackThread, 0x11, 0xFA0, 0, 0);
-
-    if (thid >= 0)
-        sceKernelStartThread(thid, 0, 0);
-
-    return thid;
 }
 
 int GETFREEMEMORY() {

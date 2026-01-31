@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <pspkernel.h>
 #include <pspkerneltypes.h>
-#include "pmp/pmp_play.h"
+
+void LPYT_FastFinish();
 
 int exit_callback(int arg1, int arg2, void *common);
 
