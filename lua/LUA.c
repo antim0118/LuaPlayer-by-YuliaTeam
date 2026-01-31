@@ -47,8 +47,7 @@
 
 intraFont *luaFont;
 
-void save_to_file(const char* filename, unsigned char* data, int size)
-{
+void save_to_file(const char *filename, unsigned char *data, int size) {
     FILE *file = fopen(filename, "wb");
     if (file == NULL) {
         perror("Не удалось открыть файл для записи");
@@ -60,37 +59,35 @@ void save_to_file(const char* filename, unsigned char* data, int size)
     fclose(file);
 }
 
-int checkFileSum(const char *path, uint32_t size)
-{
-  FILE *f = fopen(path, "rb");
-  if(f == NULL) return 1;
-  fseek(f, 0, SEEK_END);
-  long file_size = ftell(f);
-  fseek(f, 0, SEEK_SET);
+int checkFileSum(const char *path, uint32_t size) {
+    FILE *f = fopen(path, "rb");
+    if (f == NULL) return 1;
+    fseek(f, 0, SEEK_END);
+    long file_size = ftell(f);
+    fseek(f, 0, SEEK_SET);
 
-  uint8_t *file_data = malloc(file_size);
-  fread(file_data, 1, file_size, f);
-  
-  uint32_t crc = 0xFFFFFFFF;
-  const uint8_t *bytes = (const uint8_t *) file_data;
-  size_t i, j;
-  for (i = 0; i < file_size; i++) {
-    crc ^= bytes[i];
-    for (j = 0; j < 8; j++) {
-      crc = (crc >> 1) ^ (CRC32_POLYNOMIAL & (-(crc & 1)));
+    uint8_t *file_data = malloc(file_size);
+    fread(file_data, 1, file_size, f);
+
+    uint32_t crc = 0xFFFFFFFF;
+    const uint8_t *bytes = (const uint8_t *)file_data;
+    size_t i, j;
+    for (i = 0; i < file_size; i++) {
+        crc ^= bytes[i];
+        for (j = 0; j < 8; j++) {
+            crc = (crc >> 1) ^ (CRC32_POLYNOMIAL & (-(crc & 1)));
+        }
     }
-  }
 
-  fclose(f);
-  free(file_data);
-  
-  if(size == ~crc) return 0;
-  else return 1;
+    fclose(f);
+    free(file_data);
+
+    if (size == ~crc) return 0;
+    else return 1;
 }
 
-static int LUA_exit(lua_State *L)
-{
-    if(lua_gettop(L) != 0)
+static int LUA_exit(lua_State *L) {
+    if (lua_gettop(L) != 0)
         return luaL_error(L, "LUA.exit() takes no arguments");
 
     pmp_shutdown();
@@ -98,41 +95,36 @@ static int LUA_exit(lua_State *L)
     return 0;
 }
 
-static int LUA_delay(lua_State *L)
-{
-    if(lua_gettop(L) != 1)
+static int LUA_delay(lua_State *L) {
+    if (lua_gettop(L) != 1)
         return luaL_error(L, "LUA.sleep(ms) takes 1 argument");
 
-    sceKernelDelayThreadCB(luaL_checknumber(L, 1)*1000);
+    sceKernelDelayThreadCB(luaL_checknumber(L, 1) * 1000);
 
     return 0;
 }
 
-int get_freeRam()
-{
-    void* buf[128];
+int get_freeRam() {
+    void *buf[128];
     int i, j;
 
-    for(i = 0; i < 128; i++)
-    {
+    for (i = 0; i < 128; i++) {
         buf[i] = malloc(512 * 1024);
-        if(!buf[i])
+        if (!buf[i])
             break;
     }
-    
+
     int result = i;
 
-    for(j = result - 1; j >= 0; j--)
-    {
+    for (j = result - 1; j >= 0; j--) {
         free(buf[j]);
     }
 
     return (result * 512 * 1024);
 }
 
-static int LUA_freeRAM(lua_State *L)
-{
-    if(lua_gettop(L) != 0)
+static int LUA_freeRAM(lua_State *L) {
+    if (lua_gettop(L) != 0)
         return luaL_error(L, "LUA.getRAM() takes no arguments");
 
     lua_pushnumber(L, get_freeRam());
@@ -141,16 +133,16 @@ static int LUA_freeRAM(lua_State *L)
 }
 
 static int LUA_getRand(lua_State *L) {
-    if (lua_gettop(L) != 2) 
+    if (lua_gettop(L) != 2)
         return luaL_error(L, "LUA.getRandom(min, max) takes 2 arguments");
-    
-    srand(time(NULL)); 
+
+    srand(time(NULL));
     int min = luaL_checknumber(L, 1);
     int max = luaL_checknumber(L, 2);
 
     int random = rand() % (max - min + 1) + min;
     lua_pushnumber(L, random);
-    
+
     return 1;
 }
 
@@ -191,7 +183,7 @@ static int LUA_getRand(lua_State *L) {
         for (x = 0; x < new_width; x++) {
             int x_original = x * g2d_disp_buffer.w / new_width;
             int y_original = y * g2d_disp_buffer.h / new_height;
-            
+
             int x1 = x_original;
             int y1 = y_original;
             int x2 = x_original + 1 >= g2d_disp_buffer.w ? g2d_disp_buffer.w - 1 : x_original + 1;
@@ -228,36 +220,34 @@ static int LUA_getRand(lua_State *L) {
     return 0;
 }*/
 
-static int LUA_screenshot(lua_State *L)
-{
+static int LUA_screenshot(lua_State *L) {
     if (lua_gettop(L) != 3)
         return luaL_error(L, "LUA.screenshot(path, width, height) takes 3 arguments");
 
-    const char* path = luaL_checkstring(L, 1);
+    const char *path = luaL_checkstring(L, 1);
     int new_width = luaL_checkint(L, 2);
     int new_height = luaL_checkint(L, 3);
-    
+
     FILE *file = fopen(path, "wb");
     if (!file)
         return luaL_error(L, "LUA.screenshot(path): Cannot create/open path file.");
 
     png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    if (!png_ptr) 
+    if (!png_ptr)
         return luaL_error(L, "LUA.screenshot error creating file's write structure.");
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
-    if (!info_ptr) 
-    {
+    if (!info_ptr) {
         png_destroy_write_struct(&png_ptr, &info_ptr);
         return luaL_error(L, "LUA.screenshot error creating file's info structure.");
     }
-    
+
     png_init_io(png_ptr, file);
-    png_set_IHDR(png_ptr, info_ptr, new_width, new_height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE, 
-                 PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+    png_set_IHDR(png_ptr, info_ptr, new_width, new_height, 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+        PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
     png_write_info(png_ptr, info_ptr);
 
-    uint8_t* line = (uint8_t*)malloc(new_width * 3);
+    uint8_t *line = (uint8_t *)malloc(new_width * 3);
     if (!line) {
         png_destroy_write_struct(&png_ptr, &info_ptr);
         fclose(file);
@@ -294,19 +284,18 @@ static int LUA_screenshot(lua_State *L)
     return 0;
 }
 
-static int LUA_print(lua_State *L)
-{
-    if(lua_gettop(L) != 3)
+static int LUA_print(lua_State *L) {
+    if (lua_gettop(L) != 3)
         return luaL_error(L, "LUA.print(x, y, text) takes 3 arguments");
 
     intraFontSetStyle(luaFont, 0.9, WHITE, 0, 0, 0);
-    
+
     int x = luaL_checkint(L, 1);
     int y = luaL_checkint(L, 2) + intraFontTextHeight(luaFont);
     const char *text = luaL_checkstring(L, 3);
-    
+
     lua_pushnumber(L, intraFontPrint(luaFont, x, y, text));
-    
+
     return 1;
 }
 
@@ -321,27 +310,23 @@ static const luaL_Reg LUA_methods[] = {
     {0, 0}
 };
 
-int LUA_init(lua_State *L)
-{
+int LUA_init(lua_State *L) {
     save_to_file("templuaFont.pgf", LUAFont, size_LUAFont);
     save_to_file("temp_system_sound.wav", system_sound, size_system_sound);
 
-    if(checkFileSum("templuaFont.pgf", 0x48437F2D) == 0 && checkFileSum("temp_system_sound.wav", 0xD78A8334) == 0)
-    {
+    if (checkFileSum("templuaFont.pgf", 0x48437F2D) == 0 && checkFileSum("temp_system_sound.wav", 0xD78A8334) == 0) {
         luaFont = intraFontLoad("templuaFont.pgf", INTRAFONT_CACHE_LARGE | INTRAFONT_STRING_UTF8);
-        if(AalibLoad("temp_system_sound.wav", PSPAALIB_CHANNEL_WAV_32, TRUE) != 0) sceKernelExitGame();
-    
+        if (AalibLoad("temp_system_sound.wav", PSPAALIB_CHANNEL_WAV_32, TRUE) != 0) sceKernelExitGame();
+
         remove("templuaFont.pgf");
         remove("temp_system_sound.wav");
-    }
-    else
-    {
+    } else {
         remove("templuaFont.pgf");
         remove("temp_system_sound.wav");
         sceKernelExitGame();
     }
-    
+
     luaL_register(L, "LUA", LUA_methods);
-    
+
     return 0;
 }
