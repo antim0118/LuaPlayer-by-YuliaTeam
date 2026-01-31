@@ -43,7 +43,10 @@
 #--------------------------------------------------------------------------------------------------------------------------------------------*/
 
 #include "libs/callbacks.h"
-#include "libs/include_res/output_png.c"
+
+// #include "libs/include_res/output_png.c"
+#include "libs/include_res/oksiminog.c"
+#include "libs/include_res/error_placeholder.c"
 
 #include "lua/LUA.h"
 //#include "lua/asyncCycle.h"
@@ -208,7 +211,7 @@ int main() {
                 fprintf(f, "%s\n", lua_tostring(L, -1));
                 fclose(f);
 
-                char error[50];
+                char error[255];
                 sprintf(error, "%s.", lua_tostring(L, -1));
 
                 bool USB_ACTIVE = FALSE;
@@ -219,9 +222,11 @@ int main() {
                 //save_to_file("temp_error_bg.png", error_data, size_error_data);
                 //g2dImage *ERR = g2dTexLoad("temp_error_bg.png", G2D_VOID);
                 //remove("temp_error_bg.png");
-                g2dImage *ERR = g2dTexLoad(NULL, error_data, size_error_data, G2D_VOID);
+                g2dImage *OKSI = g2dTexLoad(NULL, oksiminog, size_oksiminog, G2D_VOID);
+                g2dImage *ERR = g2dTexLoad(NULL, error_placeholder, size_error_placeholder, G2D_VOID);
 
                 AalibPlay(PSPAALIB_CHANNEL_WAV_32);
+                int frame = 0; // 0-100
 
                 while (1) {
                     controls_read();
@@ -238,20 +243,43 @@ int main() {
                         USB_ACTIVE = !USB_ACTIVE;
                     }
 
+                    float rot = 100 - frame;
+                    float scale = frame / 100.0f;
+
+                    float x = 480.0f / 2.0f;
+                    float y = 272.0f / 2.0f - (rot / 2.0f);
+
+                    int alpha = frame * 4;
+                    if (alpha > 255) alpha = 255;
+
                     g2dClear(WHITE);
 
-                    g2dBeginRects(ERR);
+                    g2dBeginRects(OKSI);
                     g2dAdd();
                     g2dEnd();
 
+                    g2dBeginRects(ERR);
+                    g2dSetOriginXY(0.5f, 0.5f);
+                    g2dSetAlpha(alpha);
+                    g2dSetCoordXY(x, y);
+                    g2dSetScale(scale, scale);
+                    g2dSetRotation(rot * 5);
+                    g2dAdd();
+                    g2dEnd();
+
+                    intraFontSetStyle(luaFont, scale, G2D_RGBA(0, 0, 0, alpha), 0, rot, INTRAFONT_ALIGN_LEFT);
                     intraFontActivate(luaFont, true);
-                    intraFontPrintColumn(luaFont, 213, 94, 220, error);
+                    intraFontPrintColumn(luaFont, x - 100, y - 65, 300, error);
 
                     //printf("freeRam: %d\n", get_freeRam());
                     //intraFontPrintColumn(luaFont,230,94,220,error);
 
                     g2dFlip(G2D_VSYNC);
 
+                    if (frame < 100)
+                        frame += 3.0f;
+                    else
+                        frame = 100;
                 }
                 lua_pop(L, 1);
             }

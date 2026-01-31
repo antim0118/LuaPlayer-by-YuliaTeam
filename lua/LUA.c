@@ -42,7 +42,8 @@
 #--------------------------------------------------------------------------------------------------------------------------------------------*/
 
 #include "LUA.h"
-#include "../libs/include_res/output_wav.c"
+// #include "../libs/include_res/output_wav.c"
+#include "libs/include_res/oksiminog_phrases.c"
 #include "../libs/include_res/output_pgf.c"
 
 intraFont *luaFont;
@@ -320,9 +321,16 @@ static const luaL_Reg LUA_methods[] = {
 
 int LUA_init(lua_State *L) {
     save_to_file("templuaFont.pgf", LUAFont, size_LUAFont);
-    save_to_file("temp_system_sound.wav", system_sound, size_system_sound);
 
-    if (checkFileSum("templuaFont.pgf", 0x48437F2D) == 0 && checkFileSum("temp_system_sound.wav", 0xD78A8334) == 0) {
+    // save_to_file("temp_system_sound.wav", system_sound, size_system_sound);
+    unsigned int sizes[] = { size_oksi_phrase_1, size_oksi_phrase_2, size_oksi_phrase_3, size_oksi_phrase_4, size_oksi_phrase_5, size_oksi_phrase_6, size_oksi_phrase_7, size_oksi_phrase_8, size_oksi_phrase_9, size_oksi_phrase_10, size_oksi_phrase_11, size_oksi_phrase_12, size_oksi_phrase_13, size_oksi_phrase_14 };
+    unsigned char *sounds[] = { oksi_phrase_1, oksi_phrase_2, oksi_phrase_3, oksi_phrase_4, oksi_phrase_5, oksi_phrase_6, oksi_phrase_7, oksi_phrase_8, oksi_phrase_9, oksi_phrase_10, oksi_phrase_11, oksi_phrase_12, oksi_phrase_13, oksi_phrase_14 };
+    srand(time(NULL));
+    int index = rand() % (13 - 0 + 1) + 0;
+    // printf("==== OKSI INDEX %d\n", index);
+    save_to_file("temp_system_sound.wav", sounds[index], sizes[index]);
+
+    if (checkFileSum("templuaFont.pgf", 0x48437F2D) == 0) {
         luaFont = intraFontLoad("templuaFont.pgf", INTRAFONT_CACHE_LARGE | INTRAFONT_STRING_UTF8);
         if (AalibLoad("temp_system_sound.wav", PSPAALIB_CHANNEL_WAV_32, TRUE) != 0) sceKernelExitGame();
 
