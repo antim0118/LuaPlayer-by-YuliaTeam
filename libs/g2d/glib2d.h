@@ -505,7 +505,9 @@ void g2dResetCoord();
 void g2dSetCoordMode(g2dCoord_Mode mode);
 
 /**
- * \brief Set origin coords.
+ * \brief Set origin coords. [0.0 - 1.0]
+ * @param x [0.0 - 1.0]
+ * @param y [0.0 - 1.0]
  *
  * ???
  */

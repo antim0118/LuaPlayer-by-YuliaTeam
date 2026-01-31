@@ -520,6 +520,8 @@ void g2dEnd()
 
   sceGuColor(WHITE);
   sceGuEnable(GU_BLEND);
+  if (obj_blend_mode != -1)
+    sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
 
   obj_begin = false;
   if (obj_use_z) zclear = true;
@@ -579,8 +581,8 @@ void g2dAdd()
   //                   CURRENT_OBJ.scale_h :
   //                  (obj_coord_mode == G2D_CENTER ?
   //                   CURRENT_OBJ.scale_h/2 : 0));
-  CURRENT_OBJ.x -= CURRENT_OBJ.origin_x;
-  CURRENT_OBJ.y -= CURRENT_OBJ.origin_y;
+  CURRENT_OBJ.x -= CURRENT_OBJ.origin_x * CURRENT_OBJ.scale_w;
+  CURRENT_OBJ.y -= CURRENT_OBJ.origin_y * CURRENT_OBJ.scale_h;
 
   // Alpha stuff
   CURRENT_OBJ.color = G2D_MODULATE(CURRENT_OBJ.color, 255, obj.alpha);
