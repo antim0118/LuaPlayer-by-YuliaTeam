@@ -299,6 +299,13 @@ static int LUA_print(lua_State *L) {
     return 1;
 }
 
+static int LUA_piski(lua_State *L) {
+    intraFontSetStyle(luaFont, 8, WHITE, 0, 0, 0);
+    intraFontActivate(luaFont, false);
+    intraFontPrint(luaFont, 40, 60 + intraFontTextHeight(luaFont), "письки!");
+    return 0;
+}
+
 static const luaL_Reg LUA_methods[] = {
     {"exit",       LUA_exit},
     {"quit",       LUA_exit},
@@ -307,6 +314,7 @@ static const luaL_Reg LUA_methods[] = {
     {"getRandom",  LUA_getRand},
     {"screenshot", LUA_screenshot},
     {"print",      LUA_print},
+    {"piski",      LUA_piski},
     {0, 0}
 };
 
