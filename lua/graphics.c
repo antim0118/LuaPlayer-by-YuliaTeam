@@ -1035,27 +1035,27 @@ static int G2D_getCalls(lua_State *L) {
 }
 
 static const luaL_Reg GFX_methods[] = {
-    {"clear",        G2D_clear},
-    {"flip",         G2D_flip},
-    {"filledRect",   G2D_filledRect},
-    {"drawLine",     G2D_drawLine},
-    {"drawCircle",   G2D_drawCircle},
-    {"drawTriangle", G2D_drawTriangle},
-    {"drawRectangleColor", G2D_drawRectangleColor},
+    {"clear",               G2D_clear},
+    {"flip",                G2D_flip},
+    {"filledRect",          G2D_filledRect},
+    {"drawLine",            G2D_drawLine},
+    {"drawCircle",          G2D_drawCircle},
+    {"drawTriangle",        G2D_drawTriangle},
+    {"drawRectangleColor",  G2D_drawRectangleColor},
     {"getCalls",            G2D_getCalls},
     //{"drawCube",     G2D_drawCube},
     {0, 0}
 };
 
 static const luaL_Reg GFX_methods2[] = {
-    {"load",         G2D_texLoad},
-    {"W",            G2D_getW},
-    {"H",            G2D_getH},
-    {"draw",         G2D_draw},
-    {"draweasy",     G2D_draweasy},
-    {"unload",       G2D_texUnload},
-    {"drawCircleOnTex", G2D_drawCircleOnTex},
-    {"createPlaceholder", G2D_createPlaceholder},
+    {"load",                G2D_texLoad},
+    {"W",                   G2D_getW},
+    {"H",                   G2D_getH},
+    {"draw",                G2D_draw},
+    {"draweasy",            G2D_draweasy},
+    {"unload",              G2D_texUnload},
+    {"drawCircleOnTex",     G2D_drawCircleOnTex},
+    {"createPlaceholder",   G2D_createPlaceholder},
     {0, 0}
 };
 
