@@ -53,6 +53,7 @@
 #include "lua/audio.h"
 #include "lua/ctrl.h"
 #include "lua/graphics.h"
+#include "lua/pmp.h"
 //#include "lua/particles.h"
 #include "lua/system.h"
 #include "lua/timer.h"
