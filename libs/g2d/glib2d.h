@@ -904,6 +904,10 @@ void g2dResetScissor();
  */
 void g2dSetScissor(int x, int y, int w, int h);
 
+// * Debug functions *
+int g2dDebugGetAdds();
+int g2dDebugGetEnds();
+
 void set_pixel(g2dImage* tex, int x, int y, g2dColor color);
 
 void draw_circle(g2dImage* tex, int x, int y, int w, int h, g2dColor color);

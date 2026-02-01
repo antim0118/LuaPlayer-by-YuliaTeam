@@ -78,7 +78,8 @@ static bool obj_use_z, obj_use_vert_color, obj_use_blend, obj_use_rot,
 static int obj_blend_mode;
 static g2dCoord_Mode obj_coord_mode;
 static int obj_colors_count;
-static g2dImage* obj_tex;
+static g2dImage *obj_tex;
+static int obj_debug_adds, obj_debug_ends;
 
 g2dImage g2d_draw_buffer = { 512, 512, G2D_SCR_W, G2D_SCR_H,
                              (float)G2D_SCR_W/G2D_SCR_H, false, false,
@@ -214,6 +215,8 @@ void g2dClear(g2dColor color)
   sceGuClear(GU_COLOR_BUFFER_BIT | GU_FAST_CLEAR_BIT
              | (zclear ? GU_DEPTH_BUFFER_BIT : 0));
   zclear = false;
+  obj_debug_adds = 0;
+  obj_debug_ends = 0;
 }
 
 
@@ -525,6 +528,7 @@ void g2dEnd()
 
   obj_begin = false;
   if (obj_use_z) zclear = true;
+  obj_debug_ends++;
 }
 
 
@@ -586,6 +590,7 @@ void g2dAdd()
 
   // Alpha stuff
   CURRENT_OBJ.color = G2D_MODULATE(CURRENT_OBJ.color, 255, obj.alpha);
+  obj_debug_adds++;
 }
 
 
@@ -1785,6 +1790,16 @@ void draw_circle(g2dImage* tex, int x, int y, int w, int h, g2dColor color) {
         set_pixel(tex, x + w - 1, y + i, color); // правая линия
     }
     sceKernelDcacheWritebackAll();
+}
+
+// * Debug functions *
+
+int g2dDebugGetAdds() {
+  return obj_debug_adds;
+}
+
+int g2dDebugGetEnds() {
+  return obj_debug_ends;
 }
 
 // EOF

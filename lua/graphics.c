@@ -1045,6 +1045,13 @@ static int G2D_drawRectangleColor(lua_State *L) {
     return 0;
 }
 
+static int G2D_getCalls(lua_State *L) {
+    lua_pushnumber(L, g2dDebugGetAdds());
+    lua_pushnumber(L, g2dDebugGetEnds());
+
+    return 2;
+}
+
 static const luaL_Reg GFX_methods[] = {
     {"clear",        G2D_clear},
     {"flip",         G2D_flip},
@@ -1053,6 +1060,7 @@ static const luaL_Reg GFX_methods[] = {
     {"drawCircle",   G2D_drawCircle},
     {"drawTriangle", G2D_drawTriangle},
     {"drawRectangleColor", G2D_drawRectangleColor},
+    {"getCalls",            G2D_getCalls},
     //{"drawCube",     G2D_drawCube},
     {0, 0}
 };
