@@ -50,7 +50,6 @@ void G2D_RECT(int x, int y, int w, int h, int rotation, int alpha, g2dColor colo
 int COLOR_init(lua_State *L);
 int INTRAFONT_init(lua_State *L);
 int GRAPHICS_init(lua_State *L);
-int PMP_init(lua_State *L);
 void G2D_texUnloadAll();
 void INTRA_fontUnloadAll();
 

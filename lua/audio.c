@@ -43,7 +43,7 @@
 
 #include "audio.h"
 
-static int pgeMp3Vol;
+//static int pgeMp3Vol;
 
 struct channels
 {
