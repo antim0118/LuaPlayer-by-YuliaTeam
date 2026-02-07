@@ -44,10 +44,6 @@
 
 #include "libs/callbacks.h"
 
-// #include "libs/include_res/output_png.c"
-#include "libs/include_res/oksiminog.c"
-#include "libs/include_res/error_placeholder.c"
-
 #include "lua/LUA.h"
 //#include "lua/asyncCycle.h"
 #include "lua/audio.h"
@@ -63,6 +59,14 @@
 #include "lua/batch.h"
 #include "lua/gameobject.h"
 #include "lua/gamemaker.h"
+
+#define SIMPLE_ERROR_MODE 1
+
+#if SIMPLE_ERROR_MODE <= 0
+// #include "libs/include_res/output_png.c"
+#include "libs/include_res/oksiminog.c"
+#include "libs/include_res/error_placeholder.c"
+#endif
 
 #define LPYT_MAJOR 0
 #define LPYT_MINOR 5
@@ -172,6 +176,90 @@ void initEngine(lua_State *L) {
     VFPU_init(L);
 }
 
+void showError(lua_State *L, char *error) {
+    bool USB_ACTIVE = FALSE;
+
+    intraFontSetStyle(luaFont, 1.f, BLACK, 0, 0.f, 0);
+
+    //chdir("/");
+    //save_to_file("temp_error_bg.png", error_data, size_error_data);
+    //g2dImage *ERR = g2dTexLoad("temp_error_bg.png", G2D_VOID);
+    //remove("temp_error_bg.png");
+#if SIMPLE_ERROR_MODE <= 0
+    g2dImage *OKSI = g2dTexLoad(NULL, oksiminog, size_oksiminog, G2D_VOID);
+    g2dImage *ERR = g2dTexLoad(NULL, error_placeholder, size_error_placeholder, G2D_VOID);
+    int frame = 0; // 0-100
+    
+    AalibPlay(PSPAALIB_CHANNEL_WAV_32);
+#endif
+
+    while (1) {
+        controls_read();
+
+        if (controls_pressed(PSP_CTRL_CROSS))
+            return;
+
+        if (controls_pressed(PSP_CTRL_TRIANGLE)) {
+            if (USB_ACTIVE)
+                USB_deactivate();
+            else
+                USB_activate();
+
+            USB_ACTIVE = !USB_ACTIVE;
+        }
+
+#if SIMPLE_ERROR_MODE <= 0
+        float rot = 100 - frame;
+        float scale = frame / 100.0f;
+
+        float x = 480.0f / 2.0f;
+        float y = 272.0f / 2.0f - (rot / 2.0f);
+
+        int alpha = frame * 4;
+        if (alpha > 255) alpha = 255;
+#endif
+
+        g2dClear(WHITE);
+
+#if SIMPLE_ERROR_MODE <= 0
+        g2dBeginRects(OKSI);
+        g2dAdd();
+        g2dEnd();
+
+        g2dBeginRects(ERR);
+        g2dSetOriginXY(0.5f, 0.5f);
+        g2dSetAlpha(alpha);
+        g2dSetCoordXY(x, y);
+        g2dSetScale(scale, scale);
+        g2dSetRotation(rot * 5);
+        g2dAdd();
+        g2dEnd();
+#endif
+
+#if SIMPLE_ERROR_MODE <= 0
+        intraFontSetStyle(luaFont, scale, G2D_RGBA(0, 0, 0, alpha), 0, rot, INTRAFONT_ALIGN_LEFT);
+        intraFontActivate(luaFont, true);
+        intraFontPrintColumn(luaFont, x - 100, y - 65, 300, error);
+#else
+        intraFontActivate(luaFont, true);
+        intraFontPrintColumn(luaFont, 10, 10 + intraFontTextHeight(luaFont), 480 - 10 * 2, error);
+#endif
+
+        //printf("freeRam: %d\n", get_freeRam());
+        //intraFontPrintColumn(luaFont,230,94,220,error);
+
+        g2dFlip(G2D_VSYNC);
+
+#if SIMPLE_ERROR_MODE <= 0
+        if (frame < 100)
+            frame += 3.0f;
+        else
+            frame = 100;
+#endif
+    }
+    lua_pop(L, 1);
+}
+
 #define START_TIMER(TIMERNAME)      clock_t time_TIMERNAME = clock();
 #define STOP_TIMER(TIMERNAME)       printf("[TIMER:" #TIMERNAME "] %.2f sec.\n", (float)(clock() - time_TIMERNAME) / CLOCKS_PER_SEC);
 // #define STOP_TIMER(TIMERNAME)   clock_t startTime_TIMERNAME = clock();
@@ -204,87 +292,19 @@ int main() {
 
     STOP_TIMER(LPYT_InitTime);
 
-    while (1) {
-        if (luaL_loadfile(L, config.main_script) == 0) {
-            if (lua_pcall(L, 0, LUA_MULTRET, 0) != 0) { //error
-                FILE *f = fopen("error_log.txt", "a");
-                fprintf(f, "%s\n", lua_tostring(L, -1));
-                fclose(f);
+    if (luaL_loadfile(L, config.main_script) == 0) {
+        if (lua_pcall(L, 0, LUA_MULTRET, 0) != 0) { //error
+            FILE *f = fopen("error_log.txt", "a");
+            fprintf(f, "%s\n", lua_tostring(L, -1));
+            fclose(f);
 
-                char error[255];
-                sprintf(error, "%s.", lua_tostring(L, -1));
+            char error[255];
+            sprintf(error, "%s.", lua_tostring(L, -1));
 
-                bool USB_ACTIVE = FALSE;
-
-                intraFontSetStyle(luaFont, 1.f, BLACK, 0, 0.f, 0);
-
-                //chdir("/");
-                //save_to_file("temp_error_bg.png", error_data, size_error_data);
-                //g2dImage *ERR = g2dTexLoad("temp_error_bg.png", G2D_VOID);
-                //remove("temp_error_bg.png");
-                g2dImage *OKSI = g2dTexLoad(NULL, oksiminog, size_oksiminog, G2D_VOID);
-                g2dImage *ERR = g2dTexLoad(NULL, error_placeholder, size_error_placeholder, G2D_VOID);
-
-                AalibPlay(PSPAALIB_CHANNEL_WAV_32);
-                int frame = 0; // 0-100
-
-                while (1) {
-                    controls_read();
-
-                    if (controls_pressed(PSP_CTRL_CROSS))
-                        sceKernelExitGame();
-
-                    if (controls_pressed(PSP_CTRL_TRIANGLE)) {
-                        if (USB_ACTIVE)
-                            USB_deactivate();
-                        else
-                            USB_activate();
-
-                        USB_ACTIVE = !USB_ACTIVE;
-                    }
-
-                    float rot = 100 - frame;
-                    float scale = frame / 100.0f;
-
-                    float x = 480.0f / 2.0f;
-                    float y = 272.0f / 2.0f - (rot / 2.0f);
-
-                    int alpha = frame * 4;
-                    if (alpha > 255) alpha = 255;
-
-                    g2dClear(WHITE);
-
-                    g2dBeginRects(OKSI);
-                    g2dAdd();
-                    g2dEnd();
-
-                    g2dBeginRects(ERR);
-                    g2dSetOriginXY(0.5f, 0.5f);
-                    g2dSetAlpha(alpha);
-                    g2dSetCoordXY(x, y);
-                    g2dSetScale(scale, scale);
-                    g2dSetRotation(rot * 5);
-                    g2dAdd();
-                    g2dEnd();
-
-                    intraFontSetStyle(luaFont, scale, G2D_RGBA(0, 0, 0, alpha), 0, rot, INTRAFONT_ALIGN_LEFT);
-                    intraFontActivate(luaFont, true);
-                    intraFontPrintColumn(luaFont, x - 100, y - 65, 300, error);
-
-                    //printf("freeRam: %d\n", get_freeRam());
-                    //intraFontPrintColumn(luaFont,230,94,220,error);
-
-                    g2dFlip(G2D_VSYNC);
-
-                    if (frame < 100)
-                        frame += 3.0f;
-                    else
-                        frame = 100;
-                }
-                lua_pop(L, 1);
-            }
+            showError(L, error);
         }
     }
+
     lua_close(L);
     LPYT_FastFinish();
     return 0;
