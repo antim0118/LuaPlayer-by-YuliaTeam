@@ -217,6 +217,8 @@ static int L_setTexture(lua_State *L) {
         return luaL_error(L, "Objects.setTexture() can't get the texture");
 
     objects[index].img = img;
+    objects[index].w = img->w;
+    objects[index].h = img->h;
 
     return 0;
 }
