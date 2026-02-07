@@ -101,15 +101,15 @@ static int LGN_drawMenuTitle(lua_State *L) {
 
     float x = luaL_checknumber(L, 3);
     float y = luaL_checknumber(L, 4);
-    
+
     int title2Count = luaL_checknumber(L, 5);
     if (title2Count < 1) title2Count = 1;
     if (title2Count > COLORS2_LAST) title2Count = COLORS2_LAST;
-    
+
     float Angle = luaL_optnumber(L, 6, 0.0f);
 
     g2dBeginRects(sprTitle1);
-    g2dSetOriginXY(64 * 2.5f, 16 * 2.5f);
+    g2dSetOriginXY(64.0f / sprTitle1->w, 16.0f / sprTitle1->h);
     g2dSetRotation(Angle);
     g2dSetScaleWH(sprTitle1->w * 2.5f, sprTitle1->h * 2.5f);
     for (size_t i1 = 1; i1 <= 10; i1 += 2) {
@@ -122,7 +122,7 @@ static int LGN_drawMenuTitle(lua_State *L) {
     g2dBeginRects(sprTitle2);
     // g2dSetTexLinear(false);
     // g2dSetTexRepeat(false);
-    g2dSetOriginXY(64 * 2.5f, 16 * 2.5f);
+    g2dSetOriginXY(64.0f / sprTitle2->w, 16.0f / sprTitle2->h);
     g2dSetRotation(Angle);
     g2dSetScaleWH(sprTitle2->w * 2.5f, sprTitle2->h * 2.5f);
     for (size_t i2 = 1; i2 <= title2Count; i2++) {
@@ -152,7 +152,7 @@ static int LGN_drawMenuButtons(lua_State *L) {
 
     /* OUTLINE */
     g2dBeginRects(sprMenuOutline);
-    g2dSetOriginXY(128, 0);
+    g2dSetOriginXY(0.5f, 0);
     g2dSetRotation(View_Rotation);
     g2dSetScaleWH(256, 30);
     g2dSetCropWH(256, 30);
@@ -169,7 +169,7 @@ static int LGN_drawMenuButtons(lua_State *L) {
 
     /* MAIN */
     g2dBeginRects(sprMenu);
-    g2dSetOriginXY(128, 0);
+    g2dSetOriginXY(0.5f, 0);
     g2dSetRotation(View_Rotation);
     g2dSetScaleWH(256, 30);
     g2dSetCropWH(256, 30);
@@ -212,14 +212,15 @@ static int LGN_drawMenuTrees(lua_State *L) {
         float moveX = pow(fmod(bgsiner1 / 2 + i * 1, 4.0f), 2) * 2;
         float moveY = moveX * 10;
         float scale = moveX / 8;
+        float originX = 82.0f / sprTree->w, originY = 200.0f / sprTree->h;
 
         g2dSetCoordXY(480 / 2 - 12 - moveX * 8, 272 / 2 + 20 + moveY);
-        g2dSetOriginXY(82 * scale, 200 * scale);
+        g2dSetOriginXY(originX, originY);
         g2dSetScaleWH(sprTree->w * scale, sprTree->h * scale);
         g2dAdd();
 
         g2dSetCoordXY(480 / 2 + 12 + moveX * 8, 272 / 2 + 20 + moveY);
-        g2dSetOriginXY(82 * -scale, 200 * scale);
+        g2dSetOriginXY(-originX, originY);
         g2dSetScaleWH(sprTree->w * -scale, sprTree->h * scale);
         g2dAdd();
     }
