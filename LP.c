@@ -62,6 +62,7 @@
 #include "lua/lgn.h"
 #include "lua/batch.h"
 #include "lua/gameobject.h"
+#include "lua/gamemaker.h"
 
 PSP_MODULE_INFO("Lua Player YT", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
@@ -170,6 +171,7 @@ void initEngine(lua_State *L) {
     LGN_init(L);
     BATCH_init(L);
     GAMEOBJECT_init(L);
+    GAMEMAKER_init(L);
     TIMER_init(L);
     USB_init(L);
     VFPU_init(L);
