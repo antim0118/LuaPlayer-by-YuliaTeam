@@ -172,8 +172,12 @@ void initEngine(lua_State *L) {
     VFPU_init(L);
 }
 
+#define START_TIMER(TIMERNAME)      clock_t time_TIMERNAME = clock();
+#define STOP_TIMER(TIMERNAME)       printf("[TIMER:" #TIMERNAME "] %.2f sec.\n", (float)(clock() - time_TIMERNAME) / CLOCKS_PER_SEC);
+// #define STOP_TIMER(TIMERNAME)   clock_t startTime_TIMERNAME = clock();
+
 int main() {
-    clock_t start = clock();
+    START_TIMER(LPYT_InitTime);
 
     LPYT_Config config;
 
@@ -198,9 +202,7 @@ int main() {
     if (!f) sceKernelExitGame();
     fclose(f);
 
-    clock_t end = clock();
-    float seconds = (float)(end - start) / CLOCKS_PER_SEC;
-    printf("LuaPlayerYT initialized in %.2f sec.\n", seconds);
+    STOP_TIMER(LPYT_InitTime);
 
     while (1) {
         if (luaL_loadfile(L, config.main_script) == 0) {
