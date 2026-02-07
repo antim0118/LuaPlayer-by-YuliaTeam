@@ -4,7 +4,6 @@ extern g2dImage **toG2D(lua_State *L, int index);
 
 typedef struct Object
 {
-    int innerIndex;
     bool isUsed, isCreated;
     bool isVisible, isEnabled;
     // 8 bytes
@@ -32,6 +31,16 @@ static Object objects[MAX_OBJECTS]; // 68 * 1000 = 68k bytes = 66.40kb
 
 static int objects_lastnum = -1;
 
+#define GAMEOBJECT_REF(luaIndex, refProp)                           \
+if (args >= luaIndex) {                                             \
+    if (!lua_isfunction(L, luaIndex))                               \
+        return luaL_error(L, "argument " #luaIndex " != function"); \
+    if (refProp != -1)                                              \
+        luaL_unref(L, LUA_REGISTRYINDEX, refProp);                  \
+    lua_pushvalue(L, luaIndex);                                     \
+    refProp = luaL_ref(L, LUA_REGISTRYINDEX);                       \
+}
+
 #define GAMEOBJECT_UNREF(refe)                 \
 if (refe != -1) {                              \
     luaL_unref(L, LUA_REGISTRYINDEX, refe);    \
@@ -48,11 +57,15 @@ static int L_empty(lua_State *L) {
 }
 
 static int getFreeIndex() {
-    for (size_t i = 0; i < MAX_OBJECTS; i++) {
-        if (!objects[i].isUsed)
-            return i;
-    }
-    return -1;
+    if (objects_lastnum + 1 > MAX_OBJECTS)
+        return -1;
+    return objects_lastnum + 1;
+    // порядок отрисовки может сломаться
+    // for (size_t i = 0; i < MAX_OBJECTS; i++) {
+    //     if (!objects[i].isUsed)
+    //         return i;
+    // }
+    // return -1;
 }
 
 static int L_createObject(lua_State *L) {
@@ -67,43 +80,9 @@ static int L_createObject(lua_State *L) {
 
     objects[index].isUsed = true;
 
-    // onCreate
-    if (args >= 1) {
-        // *!
-        if (!lua_isfunction(L, 1)) { //сверка типов
-            return luaL_error(L, "1st argument != function");
-        }
-
-        if (objects[index].ref_oncreate != -1)
-            luaL_unref(L, LUA_REGISTRYINDEX, objects[index].ref_oncreate);
-        objects[index].ref_oncreate = luaL_ref(L, LUA_REGISTRYINDEX);
-    }
-
-    // onUpdate
-    if (args >= 2) {
-        // *!
-        if (!lua_isfunction(L, 2)) { //сверка типов
-            return luaL_error(L, "2st argument != function");
-        }
-
-        if (objects[index].ref_onupdate != -1)
-            luaL_unref(L, LUA_REGISTRYINDEX, objects[index].ref_onupdate);
-        objects[index].ref_onupdate = luaL_ref(L, LUA_REGISTRYINDEX);
-    }
-
-    // onDraw
-    if (args >= 3) {
-        // *!
-        if (!lua_isfunction(L, 3)) { //сверка типов
-            return luaL_error(L, "3st argument != function");
-        }
-
-        if (objects[index].ref_ondraw != -1)
-            luaL_unref(L, LUA_REGISTRYINDEX, objects[index].ref_ondraw);
-        objects[index].ref_ondraw = luaL_ref(L, LUA_REGISTRYINDEX);
-    }
-
-    //TODO: onUpdate/onDraw
+    GAMEOBJECT_REF(1, objects[index].ref_oncreate); // onCreate
+    GAMEOBJECT_REF(2, objects[index].ref_onupdate); // onUpdate
+    GAMEOBJECT_REF(3, objects[index].ref_ondraw); // onDraw
 
     if (objects_lastnum < index)
         objects_lastnum = index;
@@ -132,27 +111,32 @@ static void clearObject(lua_State *L, Object *obj) {
 
     obj->color = 0xFFFFFFFF; //white
     obj->alpha = 255;
-    obj->blending_mode = 0;
+    obj->blending_mode = -1;
 
     GAMEOBJECT_UNREF(obj->ref_oncreate);
     GAMEOBJECT_UNREF(obj->ref_onupdate);
     GAMEOBJECT_UNREF(obj->ref_ondraw);
 }
 
+clock_t clock_delta;
+
 static int L_clearObjects(lua_State *L) {
     for (size_t i = 0; i < MAX_OBJECTS; i++) {
         clearObject(L, &objects[i]);
     }
     objects_lastnum = -1;
+    clock_delta = clock();
 
     return 0;
 }
 
 static int L_process(lua_State *L) {
-    float delta = 1.0f / 60.0f;
+    clock_t clock_delta_now = clock();
+    float delta = (float)(clock_delta_now - clock_delta) / CLOCKS_PER_SEC;
+    clock_delta = clock_delta_now;
 
     /* Create */
-    for (size_t i = 0; i < objects_lastnum; i++) {
+    for (size_t i = 0; i <= objects_lastnum; i++) {
         Object *obj = &objects[i];
         if (!obj->isUsed && !obj->isEnabled) continue;
 
@@ -166,13 +150,13 @@ static int L_process(lua_State *L) {
     }
 
     /* Update */
-    for (size_t i = 0; i < objects_lastnum; i++) {
+    for (size_t i = 0; i <= objects_lastnum; i++) {
         Object *obj = &objects[i];
         if (!obj->isUsed && !obj->isEnabled) continue;
 
         if (obj->ref_onupdate != -1) {
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_onupdate);
-            lua_pushinteger(L, delta);
+            lua_pushnumber(L, delta);
             lua_call(L, 1, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
         }
 
@@ -181,16 +165,16 @@ static int L_process(lua_State *L) {
     }
 
     /* Draw */
-    for (size_t i = 0; i < objects_lastnum; i++) {
+    for (size_t i = 0; i <= objects_lastnum; i++) {
         Object *obj = &objects[i];
         if (!obj->isUsed && !obj->isEnabled) continue;
 
         if (!obj->isVisible) continue;
 
-        if (obj->ref_ondraw == -1) {
+        if (obj->ref_ondraw != -1) {
             // custom draw / onDraw
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_ondraw);
-            lua_pushinteger(L, delta);
+            lua_pushnumber(L, delta);
             lua_call(L, 1, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
         } else {
             //default draw
@@ -201,11 +185,11 @@ static int L_process(lua_State *L) {
             // g2dSetTexRepeat(repeat);
             g2dSetOriginXY(obj->origin_x, obj->origin_y);
             g2dSetCoordXY(obj->x, obj->y);
-            // g2dSetScaleWH(w, h);
+            g2dSetScaleWH(obj->w, obj->h);
             g2dSetRotation(obj->rotation);
-            // if (color != 0)
-            //     g2dSetColor(color);
-            // g2dSetAlpha(a);
+            if (obj->color != 0)
+                g2dSetColor(obj->color);
+            g2dSetAlpha(obj->alpha);
             g2dAdd();
             g2dEnd();
         }
@@ -218,7 +202,7 @@ static int L_process(lua_State *L) {
 
 #pragma region Setters / Getters
 
-#define MACROS_CHECK_ARGS_AND_GET_INDEX(name, argsNum)                              \
+#define CHECK_ARGS_AND_GET_INDEX(name, argsNum)                              \
     int args = lua_gettop(L);                                                       \
     if (args != argsNum)                                                            \
         return luaL_error(L, "Objects." #name "() takes " #argsNum " arguments");   \
@@ -226,7 +210,7 @@ static int L_process(lua_State *L) {
 
 
 static int L_setTexture(lua_State *L) {
-    MACROS_CHECK_ARGS_AND_GET_INDEX(setTexture, 2);
+    CHECK_ARGS_AND_GET_INDEX(setTexture, 2);
 
     g2dImage *img = *toG2D(L, 2);
     if (!img)
@@ -238,7 +222,7 @@ static int L_setTexture(lua_State *L) {
 }
 
 static int L_getPos(lua_State *L) {
-    MACROS_CHECK_ARGS_AND_GET_INDEX(getPos, 1);
+    CHECK_ARGS_AND_GET_INDEX(getPos, 1);
 
     lua_pushnumber(L, objects[index].x);
     lua_pushnumber(L, objects[index].y);
@@ -247,7 +231,7 @@ static int L_getPos(lua_State *L) {
 }
 
 static int L_setPos(lua_State *L) {
-    MACROS_CHECK_ARGS_AND_GET_INDEX(setPos, 3);
+    CHECK_ARGS_AND_GET_INDEX(setPos, 3);
 
     objects[index].x = luaL_checkinteger(L, 2);
     objects[index].y = luaL_checkinteger(L, 3);
@@ -256,7 +240,7 @@ static int L_setPos(lua_State *L) {
 }
 
 static int L_getSize(lua_State *L) {
-    MACROS_CHECK_ARGS_AND_GET_INDEX(getSize, 1);
+    CHECK_ARGS_AND_GET_INDEX(getSize, 1);
 
     lua_pushnumber(L, objects[index].w);
     lua_pushnumber(L, objects[index].h);
@@ -265,7 +249,7 @@ static int L_getSize(lua_State *L) {
 }
 
 static int L_setSize(lua_State *L) {
-    MACROS_CHECK_ARGS_AND_GET_INDEX(setSize, 3);
+    CHECK_ARGS_AND_GET_INDEX(setSize, 3);
 
     objects[index].w = luaL_checkinteger(L, 2);
     objects[index].h = luaL_checkinteger(L, 3);
@@ -274,7 +258,7 @@ static int L_setSize(lua_State *L) {
 }
 
 static int L_getSpeed(lua_State *L) {
-    MACROS_CHECK_ARGS_AND_GET_INDEX(getSpeed, 1);
+    CHECK_ARGS_AND_GET_INDEX(getSpeed, 1);
 
     lua_pushnumber(L, objects[index].speed_x);
     lua_pushnumber(L, objects[index].speed_y);
@@ -283,7 +267,7 @@ static int L_getSpeed(lua_State *L) {
 }
 
 static int L_setSpeed(lua_State *L) {
-    MACROS_CHECK_ARGS_AND_GET_INDEX(setSpeed, 3);
+    CHECK_ARGS_AND_GET_INDEX(setSpeed, 3);
 
     objects[index].speed_x = luaL_checkinteger(L, 2);
     objects[index].speed_y = luaL_checkinteger(L, 3);
@@ -327,5 +311,6 @@ int GAMEOBJECT_init(lua_State *L) {
     return 0;
 }
 
+#undef GAMEOBJECT_REF
 #undef GAMEOBJECT_UNREF
-#undef MACROS_CHECK_ARGS_AND_GET_INDEX
+#undef CHECK_ARGS_AND_GET_INDEX
