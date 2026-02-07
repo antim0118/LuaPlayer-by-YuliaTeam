@@ -64,7 +64,9 @@
 #include "lua/gameobject.h"
 #include "lua/gamemaker.h"
 
-PSP_MODULE_INFO("Lua Player YT", 0, 1, 0);
+#define LPYT_MAJOR 0
+#define LPYT_MINOR 5
+PSP_MODULE_INFO("LuaPlayerYT", 0, LPYT_MAJOR, LPYT_MINOR);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 int sce_newlib_heap_kb_size = (-1024);
 
@@ -148,13 +150,6 @@ int ReadConfig(const char *filename, LPYT_Config *config) {
 
     fclose(file);
     return 1;
-}
-
-int GETFREEMEMORY() {
-    if (SYSTEMint_getMODEL() == 1)
-        return (-1024);
-    else
-        return (-1024);
 }
 
 void initEngine(lua_State *L) {
@@ -289,7 +284,6 @@ int main() {
         }
     }
     lua_close(L);
-    free(config.main_script);
     LPYT_FastFinish();
     return 0;
 }
