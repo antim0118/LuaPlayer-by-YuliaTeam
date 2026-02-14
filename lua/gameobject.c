@@ -19,7 +19,8 @@ typedef struct Object
     u32 color;
     int alpha;
     int blending_mode;
-    // 4*3 = 12 bytes
+    bool use_camera;
+    // 4*3 + 1 = 13 bytes
 
     int ref_oncreate, ref_onupdate, ref_ondraw;
     // 4*3 = 12 bytes
@@ -116,6 +117,7 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->color = 0xFFFFFFFF; //white
     obj->alpha = 255;
     obj->blending_mode = -1;
+    obj->use_camera = false;
 
     GAMEOBJECT_UNREF(obj->ref_oncreate);
     GAMEOBJECT_UNREF(obj->ref_onupdate);
@@ -169,6 +171,7 @@ static int L_process(lua_State *L) {
     }
 
     /* Draw */
+    bool usedCamera = g2dGetUseCamera();
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
         if (!obj->isUsed && !obj->isEnabled) continue;
@@ -179,11 +182,13 @@ static int L_process(lua_State *L) {
             // custom draw / onDraw
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_ondraw);
             lua_pushnumber(L, delta);
+            g2dSetUseCamera(obj->use_camera);
             lua_call(L, 1, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
         } else {
             //default draw
             if (!obj->img) continue;
             g2dBeginRects(obj->img);
+            g2dSetUseCamera(obj->use_camera);
             // g2dSetCoordMode(AlMode);
             // g2dSetTexLinear(linear);
             // g2dSetTexRepeat(repeat);
@@ -198,6 +203,7 @@ static int L_process(lua_State *L) {
             g2dEnd();
         }
     }
+    g2dSetUseCamera(usedCamera);
 
     return 0;
 }
@@ -286,6 +292,14 @@ static int L_setSpeed(lua_State *L) {
     return 0;
 }
 
+static int L_setUseCamera(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setUseCamera, 2);
+
+    objects[index].use_camera = lua_toboolean(L, 2) != 0;
+
+    return 0;
+}
+
 #pragma endregion
 
 static const luaL_Reg L_methods[] = {
@@ -302,6 +316,7 @@ static const luaL_Reg L_methods[] = {
     {"setSize",             L_setSize},
     {"getSpeed",            L_getSpeed},
     {"setSpeed",            L_setSpeed},
+    {"setUseCamera",        L_setUseCamera},
 
     {"setCallbacks",        L_empty},
     {"setCollisions",       L_empty},

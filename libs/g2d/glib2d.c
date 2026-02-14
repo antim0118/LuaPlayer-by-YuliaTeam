@@ -80,6 +80,8 @@ static g2dCoord_Mode obj_coord_mode;
 static int obj_colors_count;
 static g2dImage *obj_tex;
 static int obj_debug_adds, obj_debug_ends;
+static int obj_camera_x, obj_camera_y;
+static bool obj_use_camera = false;
 
 g2dImage g2d_draw_buffer = { 512, 512, G2D_SCR_W, G2D_SCR_H,
                              (float)G2D_SCR_W/G2D_SCR_H, false, false,
@@ -570,6 +572,10 @@ void g2dAdd()
   }
 
   obj_list_size++;
+  if (obj_use_camera) {
+    obj.x -= obj_camera_x;
+    obj.y -= obj_camera_y;
+  }
   obj.rot_x = obj.x;
   obj.rot_y = obj.y;
   CURRENT_OBJ = obj;
@@ -1801,5 +1807,24 @@ int g2dDebugGetAdds() {
 int g2dDebugGetEnds() {
   return obj_debug_ends;
 }
+
+// * Camera *
+
+void g2dSetUseCamera(bool use) {
+  obj_use_camera = use;
+}
+
+bool g2dGetUseCamera() {
+  return obj_use_camera;
+}
+
+void g2dSetCameraXY(int x, int y) {
+  obj_camera_x = x;
+  obj_camera_y = y;
+}
+
+int g2dGetCameraX() {  return obj_camera_x; }
+
+int g2dGetCameraY() {  return obj_camera_y; }
 
 // EOF

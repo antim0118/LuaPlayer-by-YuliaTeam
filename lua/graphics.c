@@ -1030,6 +1030,29 @@ static int G2D_getCalls(lua_State *L) {
     return 2;
 }
 
+static int G2D_setCamera(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 1 && args != 3)
+        return luaL_error(L, "G2D_setCamera(use, [x], [y]) takes 1 or 3 arguments");
+
+    g2dSetUseCamera(lua_toboolean(L, 1) != 0);
+
+    if (args >= 3) {
+        int x = luaL_checkint(L, 2);
+        int y = luaL_checkint(L, 3);
+        g2dSetCameraXY(luaL_checkint(L, 2), luaL_checkint(L, 3));
+    }
+
+    return 0;
+}
+
+static int G2D_getCamera(lua_State *L) {
+    lua_pushnumber(L, g2dGetCameraX());
+    lua_pushnumber(L, g2dGetCameraY());
+
+    return 2;
+}
+
 static const luaL_Reg GFX_methods[] = {
     {"clear",               G2D_clear},
     {"flip",                G2D_flip},
@@ -1039,6 +1062,8 @@ static const luaL_Reg GFX_methods[] = {
     {"drawTriangle",        G2D_drawTriangle},
     {"drawRectangleColor",  G2D_drawRectangleColor},
     {"getCalls",            G2D_getCalls},
+    {"setCamera",           G2D_setCamera},
+    {"getCamera",           G2D_getCamera},
     //{"drawCube",     G2D_drawCube},
     {0, 0}
 };

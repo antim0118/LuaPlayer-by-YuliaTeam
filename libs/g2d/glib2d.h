@@ -908,6 +908,13 @@ void g2dSetScissor(int x, int y, int w, int h);
 int g2dDebugGetAdds();
 int g2dDebugGetEnds();
 
+// * Camera *
+void g2dSetUseCamera(bool use);
+bool g2dGetUseCamera();
+void g2dSetCameraXY(int x, int y);
+int g2dGetCameraX();
+int g2dGetCameraY();
+
 void set_pixel(g2dImage* tex, int x, int y, g2dColor color);
 
 void draw_circle(g2dImage* tex, int x, int y, int w, int h, g2dColor color);
