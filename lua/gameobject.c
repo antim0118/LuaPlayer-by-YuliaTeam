@@ -12,7 +12,7 @@ typedef struct Object
     int x, y;
     int w, h;
     float speed_x, speed_y;
-    int origin_x, origin_y;
+    float origin_x, origin_y;
     int rotation;
     // 4*10 = 40 bytes
 
