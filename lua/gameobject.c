@@ -29,7 +29,7 @@ typedef struct Object
 
 static Object objects[MAX_OBJECTS]; // 68 * 1000 = 68k bytes = 66.40kb
 
-static int objects_lastnum = -1;
+static int objects_lastidx = -1;
 
 #define GAMEOBJECT_REF(luaIndex, refProp)                           \
 if (args >= luaIndex) {                                             \
@@ -57,15 +57,19 @@ static int L_empty(lua_State *L) {
 }
 
 static int getFreeIndex() {
-    if (objects_lastnum + 1 > MAX_OBJECTS)
+    if (objects_lastidx + 1 > MAX_OBJECTS)
         return -1;
-    return objects_lastnum + 1;
+    return objects_lastidx + 1;
     // порядок отрисовки может сломаться
     // for (size_t i = 0; i < MAX_OBJECTS; i++) {
     //     if (!objects[i].isUsed)
     //         return i;
     // }
     // return -1;
+}
+
+static int getObjectCount() {
+    return objects_lastidx + 1;
 }
 
 static int L_createObject(lua_State *L) {
@@ -84,8 +88,8 @@ static int L_createObject(lua_State *L) {
     GAMEOBJECT_REF(2, objects[index].ref_onupdate); // onUpdate
     GAMEOBJECT_REF(3, objects[index].ref_ondraw); // onDraw
 
-    if (objects_lastnum < index)
-        objects_lastnum = index;
+    if (objects_lastidx < index)
+        objects_lastidx = index;
 
     lua_pushnumber(L, index);
 
@@ -124,7 +128,7 @@ static int L_clearObjects(lua_State *L) {
     for (size_t i = 0; i < MAX_OBJECTS; i++) {
         clearObject(L, &objects[i]);
     }
-    objects_lastnum = -1;
+    objects_lastidx = -1;
     clock_delta = clock();
 
     return 0;
@@ -136,7 +140,7 @@ static int L_process(lua_State *L) {
     clock_delta = clock_delta_now;
 
     /* Create */
-    for (size_t i = 0; i <= objects_lastnum; i++) {
+    for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
         if (!obj->isUsed && !obj->isEnabled) continue;
 
@@ -150,7 +154,7 @@ static int L_process(lua_State *L) {
     }
 
     /* Update */
-    for (size_t i = 0; i <= objects_lastnum; i++) {
+    for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
         if (!obj->isUsed && !obj->isEnabled) continue;
 
@@ -165,7 +169,7 @@ static int L_process(lua_State *L) {
     }
 
     /* Draw */
-    for (size_t i = 0; i <= objects_lastnum; i++) {
+    for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
         if (!obj->isUsed && !obj->isEnabled) continue;
 
@@ -208,6 +212,11 @@ static int L_process(lua_State *L) {
         return luaL_error(L, "Objects." #name "() takes " #argsNum " arguments");   \
     int index = luaL_checkinteger(L, 1);    
 
+static int L_getObjectCount(lua_State *L) {
+    lua_pushnumber(L, getObjectCount());
+
+    return 1;
+}
 
 static int L_setTexture(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setTexture, 2);
@@ -283,6 +292,8 @@ static const luaL_Reg L_methods[] = {
     {"createObject",        L_createObject},
     {"clearObjects",        L_clearObjects},
     {"process",             L_process},
+
+    {"getObjectCount",      L_getObjectCount},
 
     {"setTexture",          L_setTexture},
     {"getPos",              L_getPos},

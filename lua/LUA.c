@@ -129,8 +129,8 @@ int get_freeRam(bool precise) {
 }
 
 static int LUA_freeRAM(lua_State *L) {
-    if (lua_gettop(L) != 0)
-        return luaL_error(L, "LUA.getRAM([precise]) takes no arguments");
+    if (lua_gettop(L) > 1)
+        return luaL_error(L, "LUA.getRAM([precise]) takes 0 or 1 arguments");
 
     bool precise = (lua_toboolean(L, 1)) != 0;
     lua_pushinteger(L, get_freeRam(precise));
