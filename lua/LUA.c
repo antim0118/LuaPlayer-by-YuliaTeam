@@ -105,12 +105,16 @@ static int LUA_delay(lua_State *L) {
     return 0;
 }
 
-int get_freeRam() {
-    void *buf[128];
+/// @param precise use 64kb instead of 512kb chunk
+int get_freeRam(bool precise) {
+    int allocCount = precise ? 1024 : 128;
+    int chunkBytes = precise ? 64 * 1024 : 512 * 1024;
+
+    void *buf[allocCount];
     int i, j;
 
-    for (i = 0; i < 128; i++) {
-        buf[i] = malloc(512 * 1024);
+    for (i = 0; i < allocCount; i++) {
+        buf[i] = malloc(chunkBytes);
         if (!buf[i])
             break;
     }
@@ -121,14 +125,15 @@ int get_freeRam() {
         free(buf[j]);
     }
 
-    return (result * 512 * 1024);
+    return (result * chunkBytes);
 }
 
 static int LUA_freeRAM(lua_State *L) {
     if (lua_gettop(L) != 0)
-        return luaL_error(L, "LUA.getRAM() takes no arguments");
+        return luaL_error(L, "LUA.getRAM([precise]) takes no arguments");
 
-    lua_pushnumber(L, get_freeRam());
+    bool precise = (lua_toboolean(L, 1)) != 0;
+    lua_pushinteger(L, get_freeRam(precise));
 
     return 1;
 }
