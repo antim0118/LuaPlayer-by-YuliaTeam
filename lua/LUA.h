@@ -44,7 +44,7 @@
 #include "common.h"
 
 void save_to_file(const char* filename, unsigned char* data, int size);
-int get_freeRam();
+int get_freeRam(bool precise);
 
 #ifndef GLOBALS_LUA
 #define GLOBALS_LUA
