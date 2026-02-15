@@ -699,11 +699,13 @@ int removeLoadedImage(g2dImage *tex) {
 }
 
 static int G2D_texLoad(lua_State *L) {
-    if (lua_gettop(L) != 1)
-        return luaL_error(L, "Image.load(path) takes 1 argument");
+    int args = lua_gettop(L);
+    if (args != 1 && args != 2)
+        return luaL_error(L, "Image.load(path, [SWIZZLE]) takes 2 argument");
 
     char *path = (char *)luaL_checkstring(L, 1);
-    g2dImage *img = g2dTexLoad(path, NULL, 0, G2D_VOID);
+    g2dTex_Mode mode =  (lua_toboolean(L, 2)) ? G2D_SWIZZLE : G2D_VOID;
+    g2dImage *img = g2dTexLoad(path, NULL, 0, mode);
     if (!img)
         return luaL_error(L, "Image.load() error loading \"%s\"", path);
 
