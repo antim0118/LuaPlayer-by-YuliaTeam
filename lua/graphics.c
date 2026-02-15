@@ -837,8 +837,8 @@ static int G2D_draw(lua_State *L) {
     int srcw = luaL_optnumber(L, 9, img->w), srch = luaL_optnumber(L, 10, img->h);
     float Angle = luaL_optnumber(L, 11, 0.0f);
     int a = luaL_optnumber(L, 12, 255);
-    int origin_x = luaL_optnumber(L, 13, 0);
-    int origin_y = luaL_optnumber(L, 14, 0);
+    float origin_x = luaL_optnumber(L, 13, 0);
+    float origin_y = luaL_optnumber(L, 14, 0);
     bool linear = (lua_toboolean(L, 15)) ? true : false;
     bool repeat = (lua_toboolean(L, 16)) ? true : false;
     int blend = luaL_optnumber(L, 17, -1);
@@ -877,8 +877,8 @@ static int G2D_draweasy(lua_State *L) {
     u32 color = (args >= 4 && !lua_isnil(L, 4)) ? *toColor(L, 4) : 0;
     float Angle = luaL_optnumber(L, 5, 0.0f);
     int a = luaL_optnumber(L, 6, 255);
-    int origin_x = luaL_optnumber(L, 7, 0);
-    int origin_y = luaL_optnumber(L, 8, 0);
+    float origin_x = luaL_optnumber(L, 7, 0);
+    float origin_y = luaL_optnumber(L, 8, 0);
     bool linear = (lua_toboolean(L, 9)) ? true : false;
     bool repeat = (lua_toboolean(L, 10)) ? true : false;
 
