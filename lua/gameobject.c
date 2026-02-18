@@ -131,6 +131,7 @@ static void clearObject(lua_State *L, Object *obj) {
 }
 
 clock_t clock_delta;
+float delta;
 
 static int L_clearObjects(lua_State *L) {
     for (size_t i = 0; i < MAX_OBJECTS; i++) {
@@ -144,7 +145,7 @@ static int L_clearObjects(lua_State *L) {
 
 void processUpdate(lua_State *L) {
     clock_t clock_delta_now = clock();
-    float delta = (float)(clock_delta_now - clock_delta) / CLOCKS_PER_SEC;
+    delta = (float)(clock_delta_now - clock_delta) / CLOCKS_PER_SEC;
     clock_delta = clock_delta_now;
 
     /* Create */
