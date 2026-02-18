@@ -156,7 +156,8 @@ void processUpdate(lua_State *L) {
         if (!obj->isCreated) {
             if (obj->ref_oncreate != -1) {
                 lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_oncreate);
-                lua_call(L, 0, 0); //0=num args   0=num returns //чекнуть тут ещё с error handler
+                lua_pushnumber(L, i);
+                lua_call(L, 1, 0); //0=num args   0=num returns //чекнуть тут ещё с error handler
             }
             obj->isCreated = true;
         }
@@ -169,8 +170,9 @@ void processUpdate(lua_State *L) {
 
         if (obj->ref_onupdate != -1) {
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_onupdate);
+            lua_pushnumber(L, i);
             lua_pushnumber(L, delta);
-            lua_call(L, 1, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
+            lua_call(L, 2, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
         }
 
         obj->x += obj->speed_x;
@@ -189,9 +191,10 @@ void processDraw(lua_State *L) {
         if (obj->ref_ondraw != -1) {
             // custom draw / onDraw
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_ondraw);
+            lua_pushnumber(L, i);
             lua_pushnumber(L, delta);
             g2dSetUseCamera(obj->use_camera);
-            lua_call(L, 1, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
+            lua_call(L, 2, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
         } else {
             //default draw
             if (!obj->img) continue;
