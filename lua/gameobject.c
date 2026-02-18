@@ -142,7 +142,7 @@ static int L_clearObjects(lua_State *L) {
     return 0;
 }
 
-static int L_process(lua_State *L) {
+void processUpdate(lua_State *L) {
     clock_t clock_delta_now = clock();
     float delta = (float)(clock_delta_now - clock_delta) / CLOCKS_PER_SEC;
     clock_delta = clock_delta_now;
@@ -175,8 +175,9 @@ static int L_process(lua_State *L) {
         obj->x += obj->speed_x;
         obj->y += obj->speed_y;
     }
+}
 
-    /* Draw */
+void processDraw(lua_State *L) {
     bool usedCamera = g2dGetUseCamera();
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
@@ -214,6 +215,23 @@ static int L_process(lua_State *L) {
         }
     }
     g2dSetUseCamera(usedCamera);
+}
+
+static int L_processAll(lua_State *L) {
+    processUpdate(L);
+    processDraw(L);
+
+    return 0;
+}
+
+static int L_processUpdate(lua_State *L) {
+    processUpdate(L);
+
+    return 0;
+}
+
+static int L_processDraw(lua_State *L) {
+    processDraw(L);
 
     return 0;
 }
@@ -353,7 +371,9 @@ static int L_setUseCamera(lua_State *L) {
 static const luaL_Reg L_methods[] = {
     {"createObject",        L_createObject},
     {"clearObjects",        L_clearObjects},
-    {"process",             L_process},
+    {"processAll",          L_processAll},
+    {"processUpdate",       L_processUpdate},
+    {"processDraw",         L_processDraw},
 
     {"getObjectCount",      L_getObjectCount},
 
