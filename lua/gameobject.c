@@ -6,15 +6,16 @@ typedef struct Object
 {
     bool isUsed, isCreated;
     bool isVisible, isEnabled;
-    // 8 bytes
+    // 4 bytes
 
     g2dImage *img;
     int x, y;
     int w, h;
+    int crop_x, crop_y, crop_w, crop_h;
     float speed_x, speed_y;
     float origin_x, origin_y;
     int rotation;
-    // 4*10 = 40 bytes
+    // 4*14 = 56 bytes
 
     u32 color;
     int alpha;
@@ -108,6 +109,10 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->y = 0;
     obj->w = 0;
     obj->h = 0;
+    obj->crop_x = 0;
+    obj->crop_y = 0;
+    obj->crop_w = 0;
+    obj->crop_h = 0;
     obj->speed_x = 0.0f;
     obj->speed_y = 0.0f;
     obj->origin_x = 0;
@@ -194,6 +199,10 @@ static int L_process(lua_State *L) {
             // g2dSetTexRepeat(repeat);
             g2dSetOriginXY(obj->origin_x, obj->origin_y);
             g2dSetCoordXY(obj->x, obj->y);
+            if (obj->crop_w != 0 && obj->crop_h != 0) { //TODO: может быть такое, что текстура не поменяется и кроп останется от прошлого объекта! сделать else
+                g2dSetCropXY(obj->crop_x, obj->crop_y);
+                g2dSetCropWH(obj->crop_w, obj->crop_h);
+            }
             g2dSetScaleWH(obj->w, obj->h);
             g2dSetRotation(obj->rotation);
             if (obj->color != 0)
@@ -234,6 +243,17 @@ static int L_setTexture(lua_State *L) {
     objects[index].img = img;
     objects[index].w = img->w;
     objects[index].h = img->h;
+
+    return 0;
+}
+
+static int L_setTextureCrop(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setTextureCrop, 5);
+
+    objects[index].crop_x = luaL_checkinteger(L, 2);
+    objects[index].crop_y = luaL_checkinteger(L, 3);
+    objects[index].crop_w = luaL_checkinteger(L, 4);
+    objects[index].crop_h = luaL_checkinteger(L, 5);
 
     return 0;
 }
@@ -310,6 +330,7 @@ static const luaL_Reg L_methods[] = {
     {"getObjectCount",      L_getObjectCount},
 
     {"setTexture",          L_setTexture},
+    {"setTextureCrop",      L_setTextureCrop},
     {"getPos",              L_getPos},
     {"setPos",              L_setPos},
     {"getSize",             L_getSize},
