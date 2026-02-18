@@ -9,7 +9,7 @@ typedef struct Object
     // 4 bytes
 
     g2dImage *img;
-    int x, y;
+    float x, y, z; //z axis takes from -323768 to 32767 - check setPos
     int w, h;
     int crop_x, crop_y, crop_w, crop_h;
     float speed_x, speed_y;
@@ -105,8 +105,9 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->isEnabled = true;
 
     obj->img = NULL;
-    obj->x = 0;
-    obj->y = 0;
+    obj->x = 0.0f;
+    obj->y = 0.0f;
+    obj->z = 0.0f;
     obj->w = 0;
     obj->h = 0;
     obj->crop_x = 0;
@@ -198,7 +199,7 @@ static int L_process(lua_State *L) {
             // g2dSetTexLinear(linear);
             // g2dSetTexRepeat(repeat);
             g2dSetOriginXY(obj->origin_x, obj->origin_y);
-            g2dSetCoordXY(obj->x, obj->y);
+            g2dSetCoordXYZ(obj->x, obj->y, obj->z);
             if (obj->crop_w != 0 && obj->crop_h != 0) { //TODO: может быть такое, что текстура не поменяется и кроп останется от прошлого объекта! сделать else
                 g2dSetCropXY(obj->crop_x, obj->crop_y);
                 g2dSetCropWH(obj->crop_w, obj->crop_h);
@@ -225,7 +226,13 @@ static int L_process(lua_State *L) {
     int args = lua_gettop(L);                                                       \
     if (args != argsNum)                                                            \
         return luaL_error(L, "Objects." #name "() takes " #argsNum " arguments");   \
-    int index = luaL_checkinteger(L, 1);    
+    int index = luaL_checkinteger(L, 1);
+
+#define CHECK_VARIABLE_ARGS_AND_GET_INDEX(name, argsNumFrom, argsNumTo)                                         \
+    int args = lua_gettop(L);                                                                                   \
+    if (args < argsNumFrom || args > argsNumTo)                                                                 \
+        return luaL_error(L, "Objects." #name "() takes from " #argsNumFrom " to " #argsNumTo " arguments");    \
+    int index = luaL_checkinteger(L, 1);
 
 static int L_getObjectCount(lua_State *L) {
     lua_pushnumber(L, getObjectCount());
@@ -263,15 +270,19 @@ static int L_getPos(lua_State *L) {
 
     lua_pushnumber(L, objects[index].x);
     lua_pushnumber(L, objects[index].y);
+    lua_pushnumber(L, objects[index].z);
 
-    return 2;
+    return 3;
 }
 
 static int L_setPos(lua_State *L) {
-    CHECK_ARGS_AND_GET_INDEX(setPos, 3);
+    CHECK_VARIABLE_ARGS_AND_GET_INDEX(setPos, 3, 4);
 
-    objects[index].x = luaL_checkinteger(L, 2);
-    objects[index].y = luaL_checkinteger(L, 3);
+    objects[index].x = luaL_checknumber(L, 2);
+    objects[index].y = luaL_checknumber(L, 3);
+    if (args >= 4)
+        objects[index].z = 32767 - luaL_checknumber(L, 4);
+
 
     return 0;
 }
