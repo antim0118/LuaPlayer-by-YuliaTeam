@@ -283,6 +283,23 @@ static int L_setPos(lua_State *L) {
     if (args >= 4)
         objects[index].z = 32767 - luaL_checknumber(L, 4);
 
+    return 0;
+}
+
+static int L_getOrigin(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getOrigin, 1);
+
+    lua_pushnumber(L, objects[index].origin_x);
+    lua_pushnumber(L, objects[index].origin_y);
+
+    return 2;
+}
+
+static int L_setOrigin(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setOrigin, 3);
+
+    objects[index].origin_x = luaL_checknumber(L, 2);
+    objects[index].origin_y = luaL_checknumber(L, 3);
 
     return 0;
 }
@@ -344,6 +361,8 @@ static const luaL_Reg L_methods[] = {
     {"setTextureCrop",      L_setTextureCrop},
     {"getPos",              L_getPos},
     {"setPos",              L_setPos},
+    {"getOrigin",           L_getOrigin},
+    {"setOrigin",           L_setOrigin},
     {"getSize",             L_getSize},
     {"setSize",             L_setSize},
     {"getSpeed",            L_getSpeed},
