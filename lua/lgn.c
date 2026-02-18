@@ -212,7 +212,7 @@ static int LGN_drawMenuTrees(lua_State *L) {
         float moveX = pow(fmod(bgsiner1 / 2 + i * 1, 4.0f), 2) * 2;
         float moveY = moveX * 10;
         float scale = moveX / 8;
-        float originX = 82.0f / sprTree->w, originY = 200.0f / sprTree->h;
+        float originX = 1.0f, originY = 1.0f;
 
         g2dSetCoordXY(480 / 2 - 12 - moveX * 8, 272 / 2 + 20 + moveY);
         g2dSetOriginXY(originX, originY);
@@ -220,7 +220,7 @@ static int LGN_drawMenuTrees(lua_State *L) {
         g2dAdd();
 
         g2dSetCoordXY(480 / 2 + 12 + moveX * 8, 272 / 2 + 20 + moveY);
-        g2dSetOriginXY(-originX, originY);
+        g2dSetOriginXY(originX, originY);
         g2dSetScaleWH(sprTree->w * -scale, sprTree->h * scale);
         g2dAdd();
     }
