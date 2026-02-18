@@ -182,6 +182,7 @@ void processUpdate(lua_State *L) {
 
 void processDraw(lua_State *L) {
     bool usedCamera = g2dGetUseCamera();
+    bool changedTex = true;
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
         if (!obj->isUsed && !obj->isEnabled) continue;
@@ -195,10 +196,14 @@ void processDraw(lua_State *L) {
             lua_pushnumber(L, delta);
             g2dSetUseCamera(obj->use_camera);
             lua_call(L, 2, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
+            changedTex = true;
         } else {
             //default draw
             if (!obj->img) continue;
-            g2dBeginRects(obj->img);
+            if (changedTex) {
+                g2dBeginRects(obj->img);
+                changedTex = false;
+            }
             g2dSetUseCamera(obj->use_camera);
             // g2dSetCoordMode(AlMode);
             // g2dSetTexLinear(linear);
@@ -215,7 +220,10 @@ void processDraw(lua_State *L) {
                 g2dSetColor(obj->color);
             g2dSetAlpha(obj->alpha);
             g2dAdd();
-            g2dEnd();
+            if (i == objects_lastidx || (&objects[i + 1])->img != obj->img) { //last object or texture will be changed
+                g2dEnd();
+                changedTex = true;
+            }
         }
     }
     g2dSetUseCamera(usedCamera);
