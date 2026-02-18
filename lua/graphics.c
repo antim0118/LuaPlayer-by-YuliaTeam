@@ -1102,11 +1102,11 @@ int GRAPHICS_init(lua_State *L) {
     lua_pushstring(L, "Image");
     lua_gettable(L, LUA_GLOBALSINDEX);
 
-    Const("Center", G2D_CENTER)
-        Const("lUp", G2D_UP_LEFT)
-        Const("lDn", G2D_DOWN_LEFT)
-        Const("rUp", G2D_UP_RIGHT)
-        Const("rDn", G2D_DOWN_RIGHT)
+    Const("Center", G2D_CENTER);
+    Const("lUp", G2D_UP_LEFT);
+    Const("lDn", G2D_DOWN_LEFT);
+    Const("rUp", G2D_UP_RIGHT);
+    Const("rDn", G2D_DOWN_RIGHT);
 
-        return 1;
+    return 1;
 }

@@ -260,8 +260,8 @@ void showError(lua_State *L, char *error) {
     lua_pop(L, 1);
 }
 
-#define START_TIMER(TIMERNAME)      clock_t time_TIMERNAME = clock();
-#define STOP_TIMER(TIMERNAME)       printf("[TIMER:" #TIMERNAME "] %.2f sec.\n", (float)(clock() - time_TIMERNAME) / CLOCKS_PER_SEC);
+#define START_TIMER(TIMERNAME)      clock_t TIMERNAME = clock();
+#define STOP_TIMER(TIMERNAME)       printf("[TIMER:" #TIMERNAME "] %.2f sec.\n", (float)(clock() - TIMERNAME) / CLOCKS_PER_SEC);
 // #define STOP_TIMER(TIMERNAME)   clock_t startTime_TIMERNAME = clock();
 
 int main() {
