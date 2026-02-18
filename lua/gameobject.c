@@ -27,9 +27,9 @@ typedef struct Object
     // 4*3 = 12 bytes
 } Object;
 
-#define MAX_OBJECTS 1000
+#define MAX_OBJECTS 2000
 
-static Object objects[MAX_OBJECTS]; // 68 * 1000 = 68k bytes = 66.40kb
+static Object objects[MAX_OBJECTS]; // 85 * 2000 = 170k bytes = 166.02kb
 
 static int objects_lastidx = -1;
 
@@ -115,8 +115,8 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->crop_h = 0;
     obj->speed_x = 0.0f;
     obj->speed_y = 0.0f;
-    obj->origin_x = 0;
-    obj->origin_y = 0;
+    obj->origin_x = 0.0f;
+    obj->origin_y = 0.0f;
     obj->rotation = 0;
 
     obj->color = 0xFFFFFFFF; //white
@@ -306,8 +306,8 @@ static int L_getSpeed(lua_State *L) {
 static int L_setSpeed(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setSpeed, 3);
 
-    objects[index].speed_x = luaL_checkinteger(L, 2);
-    objects[index].speed_y = luaL_checkinteger(L, 3);
+    objects[index].speed_x = luaL_checknumber(L, 2);
+    objects[index].speed_y = luaL_checknumber(L, 3);
 
     return 0;
 }
