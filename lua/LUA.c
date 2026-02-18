@@ -306,9 +306,20 @@ static int LUA_print(lua_State *L) {
 }
 
 static int LUA_piski(lua_State *L) {
-    intraFontSetStyle(luaFont, 8, WHITE, 0, 0, 0);
-    intraFontActivate(luaFont, false);
-    intraFontPrint(luaFont, 40, 60 + intraFontTextHeight(luaFont), "письки!");
+    int args = lua_gettop(L);
+
+    if (args == 4) {
+        int x = luaL_checkint(L, 1);
+        int y = luaL_checkint(L, 2);
+        int w = luaL_checkint(L, 3);
+        int h = luaL_checkint(L, 4);
+        g2dSetScissor(x, y, w, h);
+    } else {
+        intraFontSetStyle(luaFont, 8, WHITE, 0, 0, 0);
+        intraFontActivate(luaFont, false);
+        intraFontPrint(luaFont, 40, 60 + intraFontTextHeight(luaFont), "письки!");
+    }
+
     return 0;
 }
 
@@ -336,7 +347,7 @@ int LUA_init(lua_State *L) {
 
     if (AalibLoad("temp_system_sound.wav", PSPAALIB_CHANNEL_WAV_32, TRUE) != 0) sceKernelExitGame();
     remove("temp_system_sound.wav");
-    #endif
+#endif
 
     save_to_file("templuaFont.pgf", LUAFont, size_LUAFont);
     if (checkFileSum("templuaFont.pgf", 0x48437F2D) == 0) {
