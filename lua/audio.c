@@ -258,6 +258,9 @@ static int AALIB_stop(lua_State *L)
         
         if(AalibDisable(channel, PSPAALIB_EFFECT_VOLUME_MANUAL) != 0)
             return luaL_error(L, "sound.stop() volume error");
+        
+        if (AalibDisable(channel, PSPAALIB_EFFECT_PLAYSPEED) != 0)
+            return luaL_error(L, "sound.stop() speed error");
     }
     lua_gc(L, LUA_GCCOLLECT, 0);
     
@@ -316,6 +319,30 @@ static int AALIB_volume(lua_State *L)
 
         if(AalibSetVolume(channel, volume) != 0)
             return luaL_error(L, "sound.volume() error to set volume");
+    }
+
+    return 0;
+}
+
+static int AALIB_speed(lua_State *L)
+{
+    if(lua_gettop(L) != 2)
+        return luaL_error(L, "sound.speed(channel, speed) takes 2 arguments");
+
+    int channel = luaL_checknumber(L, 1);
+    
+    if(channel == PSPAALIB_CHANNEL_SCEMP3_1)
+    {
+    }
+    else
+    {
+        float speed = luaL_checknumber(L, 2);
+		
+        if(AalibEnable(channel, PSPAALIB_EFFECT_PLAYSPEED) != 0)
+            return luaL_error(L, "sound.speed() failed to enable speed");
+
+        if(AalibSetPlaySpeed(channel, speed) != 0)
+            return luaL_error(L, "sound.speed() error to set speed");
     }
 
     return 0;
@@ -419,6 +446,7 @@ static const luaL_Reg AUDIO_methods[] = {
     {"info",    AALIB_getInfo},
     {"pause",   AALIB_pause},
     {"volume",  AALIB_volume},
+    {"speed",   AALIB_speed},
     {"stop",    AALIB_stop},
     {"state",   AALIB_GetStatus},
     {"unload",  AALIB_unload},
