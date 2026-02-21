@@ -2,11 +2,24 @@
 
 extern g2dImage **toG2D(lua_State *L, int index);
 
+typedef struct BaseObject
+{
+    char *name;
+    int ref_oncreate, ref_onupdate, ref_ondraw;
+    //4*4=16
+} BaseObject;
+
+#define MAX_BASE_OBJECTS 100
+static BaseObject baseobjects[MAX_BASE_OBJECTS] = { 0 }; // 16 * 100 = 1600 bytes = 1.56kb
+
 typedef struct Object
 {
-    bool isUsed, isCreated;
-    bool isVisible, isEnabled;
+    BaseObject *base;
     // 4 bytes
+
+    bool isCreated;
+    bool isVisible, isEnabled;
+    // 3 bytes
 
     g2dImage *img;
     float x, y, z; //z axis takes from -323768 to 32767 - check setPos
@@ -15,7 +28,7 @@ typedef struct Object
     float speed_x, speed_y;
     float origin_x, origin_y;
     int rotation;
-    // 4*14 = 56 bytes
+    // 4*15 = 60 bytes
 
     u32 color;
     int alpha;
@@ -23,14 +36,11 @@ typedef struct Object
     bool use_camera;
     // 4*3 + 1 = 13 bytes
 
-    int ref_oncreate, ref_onupdate, ref_ondraw;
-    // 4*3 = 12 bytes
 } Object;
 
+
 #define MAX_OBJECTS 2000
-
-static Object objects[MAX_OBJECTS]; // 85 * 2000 = 170k bytes = 166.02kb
-
+static Object objects[MAX_OBJECTS] = { 0 }; // 84 * 2000 = 168k bytes = 164.06kb
 static int objects_lastidx = -1;
 
 #define GAMEOBJECT_REF(luaIndex, refProp)                           \
@@ -58,7 +68,16 @@ static int L_empty(lua_State *L) {
     return 0;
 }
 
-static int getFreeIndex() {
+static int getFreeBaseObjectIndex() {
+    for (size_t i = 0; i < MAX_BASE_OBJECTS; i++) {
+        if (baseobjects[i].name == NULL)
+            return i;
+    }
+
+    return -1;
+}
+
+static int getFreeObjectIndex() {
     if (objects_lastidx + 1 > MAX_OBJECTS)
         return -1;
     return objects_lastidx + 1;
@@ -74,21 +93,56 @@ static int getObjectCount() {
     return objects_lastidx + 1;
 }
 
+static int L_createBaseObject(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args < 1 || args > 4)
+        return luaL_error(L, "Objects.createBaseObject(name, [onCreate], [onUpdate], [onDraw]) takes 1-4 arguments");
+
+    int index = getFreeBaseObjectIndex();
+
+    if (index == -1) {
+        luaL_error(L, "Objects.createBaseObject() reached max amount of baseobjects");
+        return 0;
+    }
+
+    const char *text = luaL_checkstring(L, 1);
+    baseobjects[index].name = strdup(text);
+
+    GAMEOBJECT_REF(2, baseobjects[index].ref_oncreate); // onCreate
+    GAMEOBJECT_REF(3, baseobjects[index].ref_onupdate); // onUpdate
+    GAMEOBJECT_REF(4, baseobjects[index].ref_ondraw);   // onDraw
+
+    lua_pushnumber(L, index);
+
+    return 1;
+}
+
+BaseObject *GetBaseObject(const char *name) {
+    if (!name)
+        return NULL;
+
+    for (int i = 0; i < MAX_BASE_OBJECTS; i++) {
+        if (baseobjects[i].name && strcmp(baseobjects[i].name, name) == 0)
+            return &baseobjects[i];
+    }
+
+    return NULL;
+}
+
 static int L_createObject(lua_State *L) {
     int args = lua_gettop(L);
+    if (args != 1)
+        return luaL_error(L, "Objects.createObject(name) takes 1 argument");
 
-    int index = getFreeIndex();
+    int index = getFreeObjectIndex();
 
     if (index == -1) {
         luaL_error(L, "Objects.createObject() reached max amount of objects");
         return 0;
     }
 
-    objects[index].isUsed = true;
+    objects[index].base = GetBaseObject(luaL_checkstring(L, 1));
 
-    GAMEOBJECT_REF(1, objects[index].ref_oncreate); // onCreate
-    GAMEOBJECT_REF(2, objects[index].ref_onupdate); // onUpdate
-    GAMEOBJECT_REF(3, objects[index].ref_ondraw); // onDraw
 
     if (objects_lastidx < index)
         objects_lastidx = index;
@@ -98,8 +152,16 @@ static int L_createObject(lua_State *L) {
     return 1;
 }
 
+static void clearBaseObject(lua_State *L, BaseObject *obj) {
+    obj->name = NULL;
+    GAMEOBJECT_UNREF(obj->ref_oncreate);
+    GAMEOBJECT_UNREF(obj->ref_onupdate);
+    GAMEOBJECT_UNREF(obj->ref_ondraw);
+}
+
 static void clearObject(lua_State *L, Object *obj) {
-    obj->isUsed = false;
+    obj->base = NULL;
+
     obj->isCreated = false;
     obj->isVisible = true;
     obj->isEnabled = true;
@@ -124,10 +186,6 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->alpha = 255;
     obj->blending_mode = -1;
     obj->use_camera = false;
-
-    GAMEOBJECT_UNREF(obj->ref_oncreate);
-    GAMEOBJECT_UNREF(obj->ref_onupdate);
-    GAMEOBJECT_UNREF(obj->ref_ondraw);
 }
 
 clock_t clock_delta;
@@ -151,11 +209,11 @@ void processUpdate(lua_State *L) {
     /* Create */
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (!obj->isUsed && !obj->isEnabled) continue;
+        if (obj->base == NULL || !obj->isEnabled) continue;
 
         if (!obj->isCreated) {
-            if (obj->ref_oncreate != -1) {
-                lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_oncreate);
+            if (obj->base->ref_oncreate != -1) {
+                lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_oncreate);
                 lua_pushnumber(L, i);
                 lua_call(L, 1, 0); //0=num args   0=num returns //чекнуть тут ещё с error handler
             }
@@ -166,10 +224,10 @@ void processUpdate(lua_State *L) {
     /* Update */
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (!obj->isUsed && !obj->isEnabled) continue;
+        if (obj->base == NULL || !obj->isEnabled) continue;
 
-        if (obj->ref_onupdate != -1) {
-            lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_onupdate);
+        if (obj->base->ref_onupdate != -1) {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_onupdate);
             lua_pushnumber(L, i);
             lua_pushnumber(L, delta);
             lua_call(L, 2, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
@@ -185,13 +243,13 @@ void processDraw(lua_State *L) {
     bool changedTex = true;
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (!obj->isUsed && !obj->isEnabled) continue;
+        if (obj->base == NULL || !obj->isEnabled) continue;
 
         if (!obj->isVisible) continue;
 
-        if (obj->ref_ondraw != -1) {
+        if (obj->base->ref_ondraw != -1) {
             // custom draw / onDraw
-            lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_ondraw);
+            lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_ondraw);
             lua_pushnumber(L, i);
             lua_pushnumber(L, delta);
             g2dSetUseCamera(obj->use_camera);
@@ -381,6 +439,7 @@ static int L_setUseCamera(lua_State *L) {
 #pragma endregion
 
 static const luaL_Reg L_methods[] = {
+    {"createBaseObject",    L_createBaseObject},
     {"createObject",        L_createObject},
     {"clearObjects",        L_clearObjects},
     {"processAll",          L_processAll},
