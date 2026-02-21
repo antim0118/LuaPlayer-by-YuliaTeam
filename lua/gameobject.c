@@ -46,9 +46,7 @@ static Object objects[MAX_OBJECTS] = { 0 }; // 84 * 2000 = 168k bytes = 164.06kb
 static int objects_lastidx = -1;
 
 #define GAMEOBJECT_REF(luaIndex, refProp)                           \
-if (args >= luaIndex) {                                             \
-    if (!lua_isfunction(L, luaIndex))                               \
-        return luaL_error(L, "argument " #luaIndex " != function"); \
+if (args >= luaIndex && lua_isfunction(L, luaIndex)) {              \
     if (refProp != -1)                                              \
         luaL_unref(L, LUA_REGISTRYINDEX, refProp);                  \
     lua_pushvalue(L, luaIndex);                                     \
@@ -196,6 +194,8 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->alpha = 255;
     obj->blending_mode = -1;
     obj->use_camera = false;
+
+    GAMEOBJECT_UNREF(obj->ref_state);
 }
 
 clock_t clock_delta;
@@ -215,6 +215,9 @@ void processUpdate(lua_State *L) {
     clock_t clock_delta_now = clock();
     delta = (float)(clock_delta_now - clock_delta) / CLOCKS_PER_SEC;
     clock_delta = clock_delta_now;
+
+    if (objects_lastidx == -1)
+        return;
 
     /* Create */
     for (size_t i = 0; i <= objects_lastidx; i++) {
@@ -251,6 +254,9 @@ void processUpdate(lua_State *L) {
 }
 
 void processDraw(lua_State *L) {
+    if (objects_lastidx == -1)
+        return;
+
     bool usedCamera = g2dGetUseCamera();
     bool changedTex = true;
     for (size_t i = 0; i <= objects_lastidx; i++) {
