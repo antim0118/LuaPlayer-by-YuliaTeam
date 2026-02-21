@@ -36,6 +36,8 @@ typedef struct Object
     bool use_camera;
     // 4*3 + 1 = 13 bytes
 
+    int ref_state;
+    // 4*1 = 4 bytes
 } Object;
 
 
@@ -143,6 +145,14 @@ static int L_createObject(lua_State *L) {
 
     objects[index].base = GetBaseObject(luaL_checkstring(L, 1));
 
+    //create state table
+    if (objects[index].ref_state != -1)
+        luaL_unref(L, LUA_REGISTRYINDEX, objects[index].ref_state);
+    lua_newtable(L);
+    lua_pushstring(L, "id");
+    lua_pushnumber(L, index);
+    lua_settable(L, -3);
+    objects[index].ref_state = luaL_ref(L, LUA_REGISTRYINDEX);
 
     if (objects_lastidx < index)
         objects_lastidx = index;
@@ -214,8 +224,9 @@ void processUpdate(lua_State *L) {
         if (!obj->isCreated) {
             if (obj->base->ref_oncreate != -1) {
                 lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_oncreate);
+                lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
                 lua_pushnumber(L, i);
-                lua_call(L, 1, 0); //0=num args   0=num returns //чекнуть тут ещё с error handler
+                lua_call(L, 2, 0); //0=num args   0=num returns //чекнуть тут ещё с error handler
             }
             obj->isCreated = true;
         }
@@ -228,9 +239,10 @@ void processUpdate(lua_State *L) {
 
         if (obj->base->ref_onupdate != -1) {
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_onupdate);
+            lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
             lua_pushnumber(L, i);
             lua_pushnumber(L, delta);
-            lua_call(L, 2, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
+            lua_call(L, 3, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
         }
 
         obj->x += obj->speed_x;
@@ -250,10 +262,11 @@ void processDraw(lua_State *L) {
         if (obj->base->ref_ondraw != -1) {
             // custom draw / onDraw
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_ondraw);
+            lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
             lua_pushnumber(L, i);
             lua_pushnumber(L, delta);
             g2dSetUseCamera(obj->use_camera);
-            lua_call(L, 2, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
+            lua_call(L, 3, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
             changedTex = true;
         } else {
             //default draw
