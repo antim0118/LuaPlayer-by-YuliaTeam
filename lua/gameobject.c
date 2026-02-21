@@ -2,48 +2,8 @@
 
 extern g2dImage **toG2D(lua_State *L, int index);
 
-typedef struct BaseObject
-{
-    char *name;
-    int ref_oncreate, ref_onupdate, ref_ondraw;
-    //4*4=16
-} BaseObject;
-
-#define MAX_BASE_OBJECTS 100
-static BaseObject baseobjects[MAX_BASE_OBJECTS] = { 0 }; // 16 * 100 = 1600 bytes = 1.56kb
-
-typedef struct Object
-{
-    BaseObject *base;
-    // 4 bytes
-
-    bool isCreated;
-    bool isVisible, isEnabled;
-    // 3 bytes
-
-    g2dImage *img;
-    float x, y, z; //z axis takes from -323768 to 32767 - check setPos
-    int w, h;
-    int crop_x, crop_y, crop_w, crop_h;
-    float speed_x, speed_y;
-    float origin_x, origin_y;
-    int rotation;
-    // 4*15 = 60 bytes
-
-    u32 color;
-    int alpha;
-    int blending_mode;
-    bool use_camera;
-    // 4*3 + 1 = 13 bytes
-
-    int ref_state;
-    // 4*1 = 4 bytes
-} Object;
-
-
-#define MAX_OBJECTS 2000
-static Object objects[MAX_OBJECTS] = { 0 }; // 84 * 2000 = 168k bytes = 164.06kb
-static int objects_lastidx = -1;
+clock_t clock_delta;
+float delta;
 
 #define GAMEOBJECT_REF(luaIndex, refProp)                           \
 if (args >= luaIndex && lua_isfunction(L, luaIndex)) {              \
@@ -59,14 +19,17 @@ if (refe != -1) {                              \
     refe = -1;                                 \
 }
 
+#pragma region BaseObject
 
-#pragma region Main
+typedef struct BaseObject
+{
+    char *name;
+    int ref_oncreate, ref_onupdate, ref_ondraw;
+    //4*4=16
+} BaseObject;
 
-static int L_empty(lua_State *L) {
-    luaL_error(L, "empty");
-
-    return 0;
-}
+#define MAX_BASE_OBJECTS 100
+static BaseObject baseobjects[MAX_BASE_OBJECTS] = { 0 }; // 16 * 100 = 1600 bytes = 1.56kb
 
 static int getFreeBaseObjectIndex() {
     for (size_t i = 0; i < MAX_BASE_OBJECTS; i++) {
@@ -75,22 +38,6 @@ static int getFreeBaseObjectIndex() {
     }
 
     return -1;
-}
-
-static int getFreeObjectIndex() {
-    if (objects_lastidx + 1 > MAX_OBJECTS)
-        return -1;
-    return objects_lastidx + 1;
-    // порядок отрисовки может сломаться
-    // for (size_t i = 0; i < MAX_OBJECTS; i++) {
-    //     if (!objects[i].isUsed)
-    //         return i;
-    // }
-    // return -1;
-}
-
-static int getObjectCount() {
-    return objects_lastidx + 1;
 }
 
 static int L_createBaseObject(lua_State *L) {
@@ -129,6 +76,64 @@ BaseObject *GetBaseObject(const char *name) {
     return NULL;
 }
 
+static void clearBaseObject(lua_State *L, BaseObject *obj) {
+    obj->name = NULL;
+    GAMEOBJECT_UNREF(obj->ref_oncreate);
+    GAMEOBJECT_UNREF(obj->ref_onupdate);
+    GAMEOBJECT_UNREF(obj->ref_ondraw);
+}
+
+#pragma endregion
+
+#pragma region Object
+typedef struct Object
+{
+    BaseObject *base;
+    // 4 bytes
+
+    bool isCreated;
+    bool isVisible, isEnabled;
+    // 3 bytes
+
+    g2dImage *img;
+    float x, y, z; //z axis takes from -323768 to 32767 - check setPos
+    int w, h;
+    int crop_x, crop_y, crop_w, crop_h;
+    float speed_x, speed_y;
+    float origin_x, origin_y;
+    int rotation;
+    // 4*15 = 60 bytes
+
+    u32 color;
+    int alpha;
+    int blending_mode;
+    bool use_camera;
+    // 4*3 + 1 = 13 bytes
+
+    int ref_state;
+    // 4*1 = 4 bytes
+} Object;
+
+#define MAX_OBJECTS 2000
+static Object objects[MAX_OBJECTS] = { 0 }; // 84 * 2000 = 168k bytes = 164.06kb
+static int objects_lastidx = -1;
+
+static int getFreeObjectIndex() {
+    if (objects_lastidx + 1 > MAX_OBJECTS)
+        return -1;
+    return objects_lastidx + 1;
+    // порядок отрисовки может сломаться
+    // for (size_t i = 0; i < MAX_OBJECTS; i++) {
+    //     if (!objects[i].isUsed)
+    //         return i;
+    // }
+    // return -1;
+}
+
+static int getObjectCount() {
+    return objects_lastidx + 1;
+}
+
 static int L_createObject(lua_State *L) {
     int args = lua_gettop(L);
     if (args != 1)
@@ -158,13 +163,6 @@ static int L_createObject(lua_State *L) {
     lua_pushnumber(L, index);
 
     return 1;
-}
-
-static void clearBaseObject(lua_State *L, BaseObject *obj) {
-    obj->name = NULL;
-    GAMEOBJECT_UNREF(obj->ref_oncreate);
-    GAMEOBJECT_UNREF(obj->ref_onupdate);
-    GAMEOBJECT_UNREF(obj->ref_ondraw);
 }
 
 static void clearObject(lua_State *L, Object *obj) {
@@ -198,8 +196,7 @@ static void clearObject(lua_State *L, Object *obj) {
     GAMEOBJECT_UNREF(obj->ref_state);
 }
 
-clock_t clock_delta;
-float delta;
+
 
 static int L_clearObjects(lua_State *L) {
     for (size_t i = 0; i < MAX_OBJECTS; i++) {
@@ -207,6 +204,17 @@ static int L_clearObjects(lua_State *L) {
     }
     objects_lastidx = -1;
     clock_delta = clock();
+
+    return 0;
+}
+
+#pragma endregion
+
+
+#pragma region Main
+
+static int L_empty(lua_State *L) {
+    luaL_error(L, "empty");
 
     return 0;
 }
