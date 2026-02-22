@@ -3,16 +3,42 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**",
-                "C:/pspsdk/psp/sdk/include/**",
-                "C:/pspsdk/psp/include/**",
-                "C:/pspsdk/**"
+                "/home/antim/pspdev/include",
+                "/home/antim/pspdev/psp/include",
+                "/home/antim/pspdev/psp/sdk/include",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/**"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
-            ]
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "mergeConfigurations": false,
+            "recursiveIncludes": {},
+            "compilerPath": "/home/antim/pspdev/bin/psp-gcc",
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "compilerPathInCppPropertiesJson": "/home/antim/pspdev/bin/psp-gcc"
+        },
+        {
+            "name": "WSL",
+            "includePath": [
+                "/home/antim/pspdev/include",
+                "/home/antim/pspdev/psp/include",
+                "/home/antim/pspdev/psp/sdk/include",
+                "${default}",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/home/antim/pspdev/bin/psp-gcc",
+            "cStandard": "c17",
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4
