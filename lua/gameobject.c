@@ -19,11 +19,24 @@ if (refe != -1) {                              \
     refe = -1;                                 \
 }
 
+uint32_t getStringHash(const char *str) {
+    uint32_t hash = 2166136261u;
+
+    while (*str) {
+        hash ^= (uint8_t)*str++;
+        hash *= 16777619u;
+    }
+
+    return hash;
+}
+
 #pragma region BaseObject
 
 typedef struct BaseObject
 {
     char *name;
+    uint32_t name_hash;
+
     int ref_oncreate, ref_onupdate, ref_ondraw;
     //4*4=16
 } BaseObject;
@@ -54,6 +67,7 @@ static int L_createBaseObject(lua_State *L) {
 
     const char *text = luaL_checkstring(L, 1);
     baseobjects[index].name = strdup(text);
+    baseobjects[index].name_hash = getStringHash(text);
 
     GAMEOBJECT_REF(2, baseobjects[index].ref_oncreate); // onCreate
     GAMEOBJECT_REF(3, baseobjects[index].ref_onupdate); // onUpdate
@@ -64,13 +78,16 @@ static int L_createBaseObject(lua_State *L) {
     return 1;
 }
 
-BaseObject *GetBaseObject(const char *name) {
+BaseObject *GetBaseObjectByName(const char *name) {
     if (!name)
         return NULL;
 
+    uint32_t hash = getStringHash(name);
+
     for (int i = 0; i < MAX_BASE_OBJECTS; i++) {
-        if (baseobjects[i].name && strcmp(baseobjects[i].name, name) == 0)
-            return &baseobjects[i];
+        if (baseobjects[i].name_hash == hash)
+            if (baseobjects[i].name && strcmp(baseobjects[i].name, name) == 0)
+                return &baseobjects[i];
     }
 
     return NULL;
@@ -78,6 +95,7 @@ BaseObject *GetBaseObject(const char *name) {
 
 static void clearBaseObject(lua_State *L, BaseObject *obj) {
     obj->name = NULL;
+    obj->name_hash = 0;
     GAMEOBJECT_UNREF(obj->ref_oncreate);
     GAMEOBJECT_UNREF(obj->ref_onupdate);
     GAMEOBJECT_UNREF(obj->ref_ondraw);
@@ -146,7 +164,8 @@ static int L_createObject(lua_State *L) {
         return 0;
     }
 
-    objects[index].base = GetBaseObject(luaL_checkstring(L, 1));
+    const char *name = luaL_checkstring(L, 1);
+    objects[index].base = GetBaseObjectByName(name);
 
     //create state table
     if (objects[index].ref_state != -1)
