@@ -245,6 +245,7 @@ void _g2dBeginCommon()
   obj_use_rot = false;
   obj_use_int = false;
   obj_colors_count = 0;
+  // obj_use_camera = false;
   g2dReset();
 
   obj_begin = true;
