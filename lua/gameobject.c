@@ -5,101 +5,21 @@ extern g2dImage **toG2D(lua_State *L, int index);
 clock_t clock_delta;
 float delta;
 
-#define GAMEOBJECT_REF(luaIndex, refProp)                           \
-if (args >= luaIndex && lua_isfunction(L, luaIndex)) {              \
-    if (refProp != -1)                                              \
-        luaL_unref(L, LUA_REGISTRYINDEX, refProp);                  \
-    lua_pushvalue(L, luaIndex);                                     \
-    refProp = luaL_ref(L, LUA_REGISTRYINDEX);                       \
-}
-
 #define GAMEOBJECT_UNREF(refe)                 \
 if (refe != -1) {                              \
     luaL_unref(L, LUA_REGISTRYINDEX, refe);    \
     refe = -1;                                 \
 }
 
-uint32_t getStringHash(const char *str) {
-    uint32_t hash = 2166136261u;
-
-    while (*str) {
-        hash ^= (uint8_t)*str++;
-        hash *= 16777619u;
-    }
-
-    return hash;
-}
-
 #pragma region BaseObject
-
-typedef struct BaseObject
-{
-    char *name;
-    uint32_t name_hash;
-
-    int ref_oncreate, ref_onupdate, ref_ondraw;
-    //4*4=16
-} BaseObject;
-
-#define MAX_BASE_OBJECTS 100
-static BaseObject baseobjects[MAX_BASE_OBJECTS] = { 0 }; // 16 * 100 = 1600 bytes = 1.56kb
-
-static int getFreeBaseObjectIndex() {
-    for (size_t i = 0; i < MAX_BASE_OBJECTS; i++) {
-        if (baseobjects[i].name == NULL)
-            return i;
-    }
-
-    return -1;
-}
-
 static int L_createBaseObject(lua_State *L) {
     int args = lua_gettop(L);
     if (args < 1 || args > 4)
         return luaL_error(L, "Objects.createBaseObject(name, [onCreate], [onUpdate], [onDraw]) takes 1-4 arguments");
 
-    int index = getFreeBaseObjectIndex();
-
-    if (index == -1) {
-        luaL_error(L, "Objects.createBaseObject() reached max amount of baseobjects");
-        return 0;
-    }
-
-    const char *text = luaL_checkstring(L, 1);
-    baseobjects[index].name = strdup(text);
-    baseobjects[index].name_hash = getStringHash(text);
-
-    GAMEOBJECT_REF(2, baseobjects[index].ref_oncreate); // onCreate
-    GAMEOBJECT_REF(3, baseobjects[index].ref_onupdate); // onUpdate
-    GAMEOBJECT_REF(4, baseobjects[index].ref_ondraw);   // onDraw
-
-    lua_pushnumber(L, index);
-
-    return 1;
+    return CreateBaseObject(L);
 }
 
-BaseObject *GetBaseObjectByName(const char *name) {
-    if (!name)
-        return NULL;
-
-    uint32_t hash = getStringHash(name);
-
-    for (int i = 0; i < MAX_BASE_OBJECTS; i++) {
-        if (baseobjects[i].name_hash == hash)
-            if (baseobjects[i].name && strcmp(baseobjects[i].name, name) == 0)
-                return &baseobjects[i];
-    }
-
-    return NULL;
-}
-
-static void clearBaseObject(lua_State *L, BaseObject *obj) {
-    obj->name = NULL;
-    obj->name_hash = 0;
-    GAMEOBJECT_UNREF(obj->ref_oncreate);
-    GAMEOBJECT_UNREF(obj->ref_onupdate);
-    GAMEOBJECT_UNREF(obj->ref_ondraw);
-}
 
 #pragma endregion
 
@@ -238,7 +158,7 @@ static int L_empty(lua_State *L) {
     return 0;
 }
 
-void processUpdate(lua_State *L) {
+static void processUpdate(lua_State *L) {
     clock_t clock_delta_now = clock();
     delta = (float)(clock_delta_now - clock_delta) / CLOCKS_PER_SEC;
     clock_delta = clock_delta_now;
@@ -280,7 +200,7 @@ void processUpdate(lua_State *L) {
     }
 }
 
-void processDraw(lua_State *L) {
+static void processDraw(lua_State *L) {
     if (objects_lastidx == -1)
         return;
 
@@ -527,6 +447,5 @@ int GAMEOBJECT_init(lua_State *L) {
     return 0;
 }
 
-#undef GAMEOBJECT_REF
 #undef GAMEOBJECT_UNREF
 #undef CHECK_ARGS_AND_GET_INDEX
