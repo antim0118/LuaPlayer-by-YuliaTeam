@@ -27,7 +27,8 @@ OBJS = $(SRC_OBJS) $(LUA_SRC_OBJECTS) $(LUA_OBJS) LP.o
 
 INCDIR = include
 LIBDIR = lib
-CFLAGS = -O3 -G0 -Wall -Wno-trigraphs -Ofast -ffast-math -funroll-loops -fomit-frame-pointer
+# CFLAGS = -O3 -G0 -Wall -Wno-trigraphs -Ofast -ffast-math -funroll-loops -fomit-frame-pointer
+CFLAGS = -O3 -G0 -Wall -Wno-trigraphs -Ofast -ffast-math -funroll-loops -fomit-frame-pointer -DNDEBUG -ffunction-sections -fdata-sections
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS) -c
 
