@@ -1,4 +1,4 @@
-#include "LUA.h"
+#include "gameobject.h"
 
 extern g2dImage **toG2D(lua_State *L, int index);
 
