@@ -189,7 +189,7 @@ void showError(lua_State *L, char *error) {
     g2dImage *OKSI = g2dTexLoad(NULL, oksiminog, size_oksiminog, G2D_VOID);
     g2dImage *ERR = g2dTexLoad(NULL, error_placeholder, size_error_placeholder, G2D_VOID);
     int frame = 0; // 0-100
-    
+
     AalibPlay(PSPAALIB_CHANNEL_WAV_32);
 #endif
 
