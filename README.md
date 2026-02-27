@@ -1,2 +1,0 @@
-# LuaPlayer-by-YuliaTeam
-
