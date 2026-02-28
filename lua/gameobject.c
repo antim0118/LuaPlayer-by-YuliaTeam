@@ -77,6 +77,13 @@ static int L_createObject(lua_State *L) {
     if (args != 1)
         return luaL_error(L, "Objects.createObject(name) takes 1 argument");
 
+    const char *name = luaL_checkstring(L, 1);
+    BaseObject *base = GetBaseObjectByName(name);
+    if (!base) {
+        printf("[Gameobject] Object %s wasn't found!\n", name);
+        return 0;
+    }
+
     int index = getFreeObjectIndex();
 
     if (index == -1) {
@@ -84,8 +91,7 @@ static int L_createObject(lua_State *L) {
         return 0;
     }
 
-    const char *name = luaL_checkstring(L, 1);
-    objects[index].base = GetBaseObjectByName(name);
+    objects[index].base = base;
 
     //create state table
     if (objects[index].ref_state != -1)
