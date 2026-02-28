@@ -811,7 +811,12 @@ float intraFontPrintColumn(intraFont *font, float x, float y, float width, const
 }
 
 float intraFontPrintColumnEx(intraFont *font, float x, float y, float column, const char *text, int length) {
-    if (!text || length <= 0 || !font) return x;
+    if (g2dGetUseCamera()) {
+        x -= g2dGetCameraX();
+        y -= g2dGetCameraY();
+    }
+  
+  if (!text || length <= 0 || !font) return x;
   
 #define LOCAL_BUFFER_LENGTH 256
   cccUCS2 buffer[ LOCAL_BUFFER_LENGTH ];

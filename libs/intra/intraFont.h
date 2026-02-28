@@ -22,6 +22,7 @@ extern "C" {
 #include <ft2build.h>
 #include <stdbool.h>
 #include FT_FREETYPE_H
+#include "libs/g2d/glib2d.h"
 
 /** @defgroup intraFont Font Library
  *  @{
