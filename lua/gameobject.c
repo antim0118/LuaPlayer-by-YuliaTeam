@@ -346,6 +346,22 @@ static int L_setPos(lua_State *L) {
     return 0;
 }
 
+static int L_getRotation(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getRotation, 1);
+
+    lua_pushnumber(L, objects[index].rotation);
+
+    return 1;
+}
+
+static int L_setRotation(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setRotation, 2);
+
+    objects[index].rotation = luaL_checkint(L, 2);
+
+    return 0;
+}
+
 static int L_getOrigin(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getOrigin, 1);
 
@@ -408,6 +424,14 @@ static int L_setUseCamera(lua_State *L) {
     return 0;
 }
 
+static int L_getState(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getState, 1);
+
+    lua_rawgeti(L, LUA_REGISTRYINDEX, objects[index].ref_state);
+
+    return 1;
+}
+
 #pragma endregion
 
 static const luaL_Reg L_methods[] = {
@@ -424,6 +448,8 @@ static const luaL_Reg L_methods[] = {
     {"setTextureCrop",      L_setTextureCrop},
     {"getPos",              L_getPos},
     {"setPos",              L_setPos},
+    {"getRotation",         L_getRotation},
+    {"setRotation",         L_setRotation},
     {"getOrigin",           L_getOrigin},
     {"setOrigin",           L_setOrigin},
     {"getSize",             L_getSize},
@@ -431,6 +457,7 @@ static const luaL_Reg L_methods[] = {
     {"getSpeed",            L_getSpeed},
     {"setSpeed",            L_setSpeed},
     {"setUseCamera",        L_setUseCamera},
+    {"getState",            L_getState},
 
     {"setCallbacks",        L_empty},
     {"setCollisions",       L_empty},
