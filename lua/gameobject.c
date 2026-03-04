@@ -34,7 +34,7 @@ typedef struct Object
     // 3 bytes
 
     g2dImage *img;
-    float x, y, z; //z axis takes from -323768 to 32767 - check setPos
+    float x, y, z; //z axis takes from -32768 to 32767 - check setPos
     int w, h;
     int crop_x, crop_y, crop_w, crop_h;
     float speed_x, speed_y;
@@ -383,8 +383,8 @@ static int L_setOrigin(lua_State *L) {
 static int L_getSize(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getSize, 1);
 
-    lua_pushnumber(L, objects[index].w);
-    lua_pushnumber(L, objects[index].h);
+    lua_pushinteger(L, objects[index].w);
+    lua_pushinteger(L, objects[index].h);
 
     return 2;
 }

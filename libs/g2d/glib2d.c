@@ -621,7 +621,7 @@ void g2dGetCoordXYZ(float *x, float *y, float *z) {
 void g2dSetCoordXY(float x, float y) {
     obj.x = x * global_scale;
     obj.y = y * global_scale;
-    obj.z = 0.f;
+    obj.z = DEFAULT_Z;
 }
 
 

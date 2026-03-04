@@ -704,7 +704,7 @@ static int G2D_texLoad(lua_State *L) {
         return luaL_error(L, "Image.load(path, [SWIZZLE]) takes 2 argument");
 
     char *path = (char *)luaL_checkstring(L, 1);
-    g2dTex_Mode mode =  (lua_toboolean(L, 2)) ? G2D_SWIZZLE : G2D_VOID;
+    g2dTex_Mode mode = (lua_toboolean(L, 2)) ? G2D_SWIZZLE : G2D_VOID;
     g2dImage *img = g2dTexLoad(path, NULL, 0, mode);
     if (!img)
         return luaL_error(L, "Image.load() error loading \"%s\"", path);
@@ -902,7 +902,7 @@ static int G2D_draweasy(lua_State *L) {
 static int G2D_filledRect(lua_State *L) {
     int args = lua_gettop(L);
     if (args < 5 || args > 8)
-        return luaL_error(L, "screen.filledRect(x, y, width, height, color, [rotation] [alpha], [mode]) takes 5, 6, 7 or 8 arguments");
+        return luaL_error(L, "screen.filledRect(x, y, width, height, color, [rotation], [alpha], [mode]) takes 5, 6, 7 or 8 arguments");
 
     int x = luaL_checknumber(L, 1);
     int y = luaL_checknumber(L, 2);
