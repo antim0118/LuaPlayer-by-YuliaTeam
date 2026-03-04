@@ -1,6 +1,8 @@
 #include "gameobject.h"
 
 extern g2dImage **toG2D(lua_State *L, int index);
+extern g2dColor *toColor(lua_State *L, int index);
+extern g2dColor *pushColor(lua_State *L);
 
 clock_t clock_delta;
 float delta;
@@ -398,6 +400,38 @@ static int L_setSize(lua_State *L) {
     return 0;
 }
 
+static int L_getColor(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getColor, 1);
+
+    *pushColor(L) = objects[index].color;
+
+    return 1;
+}
+
+static int L_setColor(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setColor, 2);
+
+    objects[index].color = *toColor(L, 2);
+
+    return 0;
+}
+
+static int L_getAlpha(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getAlpha, 1);
+
+    lua_pushinteger(L, objects[index].alpha);
+
+    return 1;
+}
+
+static int L_setAlpha(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setAlpha, 2);
+
+    objects[index].alpha = luaL_checkinteger(L, 2);
+
+    return 0;
+}
+
 static int L_getSpeed(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getSpeed, 1);
 
@@ -454,6 +488,10 @@ static const luaL_Reg L_methods[] = {
     {"setOrigin",           L_setOrigin},
     {"getSize",             L_getSize},
     {"setSize",             L_setSize},
+    {"getColor",            L_getColor},
+    {"setColor",            L_setColor},
+    {"getAlpha",            L_getAlpha},
+    {"setAlpha",            L_setAlpha},
     {"getSpeed",            L_getSpeed},
     {"setSpeed",            L_setSpeed},
     {"setUseCamera",        L_setUseCamera},
