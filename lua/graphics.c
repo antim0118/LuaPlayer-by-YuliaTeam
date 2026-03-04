@@ -918,6 +918,32 @@ static int G2D_filledRect(lua_State *L) {
     return 0;
 }
 
+static int G2D_filledRectDepth(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args < 6 || args > 8)
+        return luaL_error(L, "screen.filledRectDepth(x, y, z, width, height, color, [rotation], [alpha]) takes 6, 7 or 8 arguments");
+
+    int x = luaL_checkint(L, 1);
+    int y = luaL_checkint(L, 2);
+    int z = 32767 - luaL_checkint(L, 3);
+    int w = luaL_checkint(L, 4);
+    int h = luaL_checkint(L, 5);
+    u32 color = *toColor(L, 6);
+    int rotation = luaL_optint(L, 7, 0);
+    int alpha = luaL_optint(L, 8, 255);
+
+    g2dBeginRects(NULL);
+    g2dSetCoordXYZ(x, y, z);
+    g2dSetScaleWH(w, h);
+    g2dSetRotation(rotation);
+    g2dSetAlpha(setInterval(alpha, 0, 255));
+    g2dSetColor(color);
+    g2dAdd();
+    g2dEnd();
+
+    return 0;
+}
+
 static int G2D_drawCircle(lua_State *L) {
     int args = lua_gettop(L);
     if (args != 4)
@@ -1059,6 +1085,7 @@ static const luaL_Reg GFX_methods[] = {
     {"clear",               G2D_clear},
     {"flip",                G2D_flip},
     {"filledRect",          G2D_filledRect},
+    {"filledRectDepth",     G2D_filledRectDepth},
     {"drawLine",            G2D_drawLine},
     {"drawCircle",          G2D_drawCircle},
     {"drawTriangle",        G2D_drawTriangle},
