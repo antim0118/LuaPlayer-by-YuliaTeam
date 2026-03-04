@@ -14,7 +14,7 @@ typedef struct
 {
     char type;
     g2dImage *img;
-    int x, y;
+    int x, y, z;
     int tile_w, tile_h;
     // 1+4+8+8 = 21 bytes
 } BatchData;
@@ -31,21 +31,23 @@ int getNextIndex() {
 
 static int L_addDraw(lua_State *L) {
     //Batch.addDraw(tex, x, y, )
-    if (lua_gettop(L) != 3)
+    if (lua_gettop(L) != 4)
         return luaL_error(L, "Batch_addDraw(...) takes ? argument");
 
     g2dImage *img = *toG2D(L, 1);
 
     int x = luaL_checknumber(L, 2);
     int y = luaL_checknumber(L, 3);
+    int z = luaL_checknumber(L, 4);
 
     int idx = getNextIndex();
     batch_data[idx].type = BATCH_TYPE_TEX;
     batch_data[idx].img = img;
     batch_data[idx].x = x;
     batch_data[idx].y = y;
+    batch_data[idx].z = z;
 
-    printf("Batch_addDraw [%d] - x:%d  y:%d \n", idx, batch_data[idx].x, batch_data[idx].y);
+    printf("Batch_addDraw [%d] - x:%d  y:%d z:%d \n", idx, x, y, z);
 
     lua_pushinteger(L, idx);
 
@@ -54,21 +56,23 @@ static int L_addDraw(lua_State *L) {
 
 static int L_addTile(lua_State *L) {
     //Batch.addTile(tex, x, y, w, h)
-    if (lua_gettop(L) != 5)
+    if (lua_gettop(L) != 6)
         return luaL_error(L, "Batch_addDraw(...) takes ? argument");
 
     g2dImage *img = *toG2D(L, 1);
 
     int x = luaL_checkinteger(L, 2);
     int y = luaL_checkinteger(L, 3);
-    int w = luaL_checkinteger(L, 4);
-    int h = luaL_checkinteger(L, 5);
+    int z = luaL_checkinteger(L, 4);
+    int w = luaL_checkinteger(L, 5);
+    int h = luaL_checkinteger(L, 6);
 
     int idx = getNextIndex();
     batch_data[idx].type = BATCH_TYPE_TILE;
     batch_data[idx].img = img;
     batch_data[idx].x = x;
     batch_data[idx].y = y;
+    batch_data[idx].z = 32767 - z;
     batch_data[idx].tile_w = w;
     batch_data[idx].tile_h = h;
 
@@ -100,7 +104,7 @@ static int L_render(lua_State *L) {
 
             g2dSetTexLinear(false);
             g2dSetTexRepeat(false);
-            g2dSetCoordXY(data->x, data->y);
+            g2dSetCoordXYZ(data->x, data->y, data->z);
             // g2dSetRotation(0);
             // g2dSetColor(0xFFFFFFFF);
             // g2dSetAlpha(255);
@@ -109,7 +113,7 @@ static int L_render(lua_State *L) {
             g2dBeginRects(data->img);
             g2dSetTexLinear(false);
             g2dSetTexRepeat(true);
-            g2dSetCoordXY(data->x, data->y);
+            g2dSetCoordXYZ(data->x, data->y, data->z);
             g2dSetCropXY(0, 0);
             g2dSetCropWH(data->tile_w, data->tile_h);
             g2dSetScaleWH(data->tile_w, data->tile_h);
