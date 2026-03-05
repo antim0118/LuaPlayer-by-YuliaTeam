@@ -39,24 +39,29 @@ typedef struct Object
     float x, y, z;
     int w, h;
     int crop_x, crop_y, crop_w, crop_h;
-    float speed_x, speed_y;
     float origin_x, origin_y;
-    int rotation;
-    // 4*15 = 60 bytes
+    // 4*12 = 48 bytes
 
+    float speed_x, speed_y;
+    // 4*2 = 8 bytes
+
+    int rotation;
     u32 color;
     int alpha;
     int blending_mode;
-    bool use_camera;
-    // 4*3 + 1 = 13 bytes
-    bool use_repeat;
+    // 4*4 = 16 bytes
 
+    bool use_camera;
+    bool use_repeat;
+    // 2 bytes
+
+    /* LUA */
     int ref_state;
     // 4*1 = 4 bytes
 } Object;
 
 #define MAX_OBJECTS 2000
-static Object objects[MAX_OBJECTS] = { 0 }; // 84 * 2000 = 168k bytes = 164.06kb
+static Object objects[MAX_OBJECTS] = { 0 }; // 85 * 2000 = 170k bytes = 166kb
 static int objects_lastidx = -1;
 
 static int getFreeObjectIndex() {
@@ -130,15 +135,17 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->crop_y = 0;
     obj->crop_w = 0;
     obj->crop_h = 0;
-    obj->speed_x = 0.0f;
-    obj->speed_y = 0.0f;
     obj->origin_x = 0.0f;
     obj->origin_y = 0.0f;
-    obj->rotation = 0;
 
+    obj->speed_x = 0.0f;
+    obj->speed_y = 0.0f;
+
+    obj->rotation = 0;
     obj->color = 0xFFFFFFFF; //white
     obj->alpha = 255;
     obj->blending_mode = -1;
+
     obj->use_camera = false;
     obj->use_repeat = false;
 
@@ -186,7 +193,7 @@ static void processUpdate(lua_State *L) {
                 lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_oncreate);
                 lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
                 lua_pushnumber(L, i);
-                lua_call(L, 2, 0); //0=num args   0=num returns //чекнуть тут ещё с error handler
+                lua_call(L, 2, 0); //0=num args   0=num returns
             }
             obj->isCreated = true;
         }
@@ -202,7 +209,7 @@ static void processUpdate(lua_State *L) {
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
             lua_pushnumber(L, i);
             lua_pushnumber(L, delta);
-            lua_call(L, 3, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
+            lua_call(L, 3, 0); //1=num args   0=num returns
         }
 
         obj->x += obj->speed_x;
@@ -229,7 +236,7 @@ static void processDraw(lua_State *L) {
             lua_pushnumber(L, i);
             lua_pushnumber(L, delta);
             g2dSetUseCamera(obj->use_camera);
-            lua_call(L, 3, 0); //1=num args   0=num returns //чекнуть тут ещё с error handler
+            lua_call(L, 3, 0); //1=num args   0=num returns
             changedTex = true;
         } else {
             //default draw
@@ -511,9 +518,6 @@ static const luaL_Reg L_methods[] = {
     {"setUseRepeat",        L_setUseRepeat},
     {"getState",            L_getState},
 
-    {"setCallbacks",        L_empty},
-    {"setCollisions",       L_empty},
-    {"calculateCollisions", L_empty},
 
     {0, 0}
 };
