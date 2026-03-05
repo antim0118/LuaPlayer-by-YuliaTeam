@@ -925,7 +925,7 @@ static int G2D_filledRectDepth(lua_State *L) {
 
     int x = luaL_checkint(L, 1);
     int y = luaL_checkint(L, 2);
-    int z = 32767 - luaL_checkint(L, 3);
+    int z = luaL_checkint(L, 3);
     int w = luaL_checkint(L, 4);
     int h = luaL_checkint(L, 5);
     u32 color = *toColor(L, 6);

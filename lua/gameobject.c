@@ -36,7 +36,7 @@ typedef struct Object
     // 3 bytes
 
     g2dImage *img;
-    float x, y, z; //z axis takes from -32768 to 32767 - check setPos
+    float x, y, z;
     int w, h;
     int crop_x, crop_y, crop_w, crop_h;
     float speed_x, speed_y;
@@ -344,8 +344,11 @@ static int L_setPos(lua_State *L) {
 
     objects[index].x = luaL_checknumber(L, 2);
     objects[index].y = luaL_checknumber(L, 3);
-    if (args >= 4)
-        objects[index].z = 32767 - luaL_checknumber(L, 4);
+    if (args >= 4) {
+        objects[index].z = luaL_checknumber(L, 4);
+        if (objects[index].z < 0 || objects[index].z > 65535)
+            return luaL_error(L, "Objects.setPos() z axis should be in range of [0-65535]");
+    }
 
     return 0;
 }
