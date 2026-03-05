@@ -31,8 +31,8 @@ typedef struct Object
     BaseObject *base;
     // 4 bytes
 
-    bool isCreated;
-    bool isVisible, isEnabled;
+    bool is_created;
+    bool is_visible, is_enabled;
     // 3 bytes
 
     g2dImage *img;
@@ -121,9 +121,9 @@ static int L_createObject(lua_State *L) {
 static void clearObject(lua_State *L, Object *obj) {
     obj->base = NULL;
 
-    obj->isCreated = false;
-    obj->isVisible = true;
-    obj->isEnabled = true;
+    obj->is_created = false;
+    obj->is_visible = true;
+    obj->is_enabled = true;
 
     obj->img = NULL;
     obj->x = 0.0f;
@@ -186,23 +186,23 @@ static void processUpdate(lua_State *L) {
     /* Create */
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (obj->base == NULL || !obj->isEnabled) continue;
+        if (obj->base == NULL || !obj->is_enabled) continue;
 
-        if (!obj->isCreated) {
+        if (!obj->is_created) {
             if (obj->base->ref_oncreate != -1) {
                 lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_oncreate);
                 lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
                 lua_pushnumber(L, i);
                 lua_call(L, 2, 0); //0=num args   0=num returns
             }
-            obj->isCreated = true;
+            obj->is_created = true;
         }
     }
 
     /* Update */
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (obj->base == NULL || !obj->isEnabled) continue;
+        if (obj->base == NULL || !obj->is_enabled) continue;
 
         if (obj->base->ref_onupdate != -1) {
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_onupdate);
@@ -225,9 +225,9 @@ static void processDraw(lua_State *L) {
     bool changedTex = true;
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (obj->base == NULL || !obj->isEnabled) continue;
+        if (obj->base == NULL || !obj->is_enabled) continue;
 
-        if (!obj->isVisible) continue;
+        if (!obj->is_visible) continue;
 
         if (obj->base->ref_ondraw != -1) {
             // custom draw / onDraw
