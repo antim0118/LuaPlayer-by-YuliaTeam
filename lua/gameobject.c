@@ -49,6 +49,7 @@ typedef struct Object
     int blending_mode;
     bool use_camera;
     // 4*3 + 1 = 13 bytes
+    bool use_repeat;
 
     int ref_state;
     // 4*1 = 4 bytes
@@ -139,6 +140,7 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->alpha = 255;
     obj->blending_mode = -1;
     obj->use_camera = false;
+    obj->use_repeat = false;
 
     GAMEOBJECT_UNREF(obj->ref_state);
 }
@@ -239,7 +241,7 @@ static void processDraw(lua_State *L) {
             g2dSetUseCamera(obj->use_camera);
             // g2dSetCoordMode(AlMode);
             // g2dSetTexLinear(linear);
-            // g2dSetTexRepeat(repeat);
+            g2dSetTexRepeat(obj->use_repeat);
             g2dSetOriginXY(obj->origin_x, obj->origin_y);
             g2dSetCoordXYZ(obj->x, obj->y, obj->z);
             if (obj->crop_w != 0 && obj->crop_h != 0) { //TODO: может быть такое, что текстура не поменяется и кроп останется от прошлого объекта! сделать else
@@ -458,6 +460,14 @@ static int L_setUseCamera(lua_State *L) {
     return 0;
 }
 
+static int L_setUseRepeat(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setUseRepeat, 2);
+
+    objects[index].use_repeat = lua_toboolean(L, 2) != 0;
+
+    return 0;
+}
+
 static int L_getState(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getState, 1);
 
@@ -495,6 +505,7 @@ static const luaL_Reg L_methods[] = {
     {"getSpeed",            L_getSpeed},
     {"setSpeed",            L_setSpeed},
     {"setUseCamera",        L_setUseCamera},
+    {"setUseRepeat",        L_setUseRepeat},
     {"getState",            L_getState},
 
     {"setCallbacks",        L_empty},
