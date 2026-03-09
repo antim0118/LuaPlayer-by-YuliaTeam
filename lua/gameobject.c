@@ -186,17 +186,15 @@ static void processUpdate(lua_State *L) {
     /* Create */
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (obj->base == NULL || !obj->is_enabled) continue;
+        if (obj->base == NULL || obj->is_created) continue;
 
-        if (!obj->is_created) {
-            if (obj->base->ref_oncreate != -1) {
-                lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_oncreate);
-                lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
-                lua_pushnumber(L, i);
-                lua_call(L, 2, 0); //0=num args   0=num returns
-            }
-            obj->is_created = true;
+        if (obj->base->ref_oncreate != -1) {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_oncreate);
+            lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
+            lua_pushnumber(L, i);
+            lua_call(L, 2, 0); //0=num args   0=num returns
         }
+        obj->is_created = true;
     }
 
     /* Update */
@@ -225,9 +223,7 @@ static void processDraw(lua_State *L) {
     bool changedTex = true;
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (obj->base == NULL || !obj->is_enabled) continue;
-
-        if (!obj->is_visible) continue;
+        if (obj->base == NULL || !obj->is_visible) continue;
 
         if (obj->base->ref_ondraw != -1) {
             // custom draw / onDraw
@@ -309,6 +305,22 @@ static int L_getObjectCount(lua_State *L) {
     lua_pushnumber(L, getObjectCount());
 
     return 1;
+}
+
+static int L_setVisible(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setVisible, 2);
+
+    objects[index].is_visible = lua_toboolean(L, 2) != 0;
+
+    return 0;
+}
+
+static int L_setEnabled(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setEnabled, 2);
+
+    objects[index].is_enabled = lua_toboolean(L, 2) != 0;
+
+    return 0;
 }
 
 static int L_setTexture(lua_State *L) {
@@ -497,6 +509,9 @@ static const luaL_Reg L_methods[] = {
     {"processDraw",         L_processDraw},
 
     {"getObjectCount",      L_getObjectCount},
+
+    {"setVisible",          L_setVisible},
+    {"setEnabled",          L_setEnabled},
 
     {"setTexture",          L_setTexture},
     {"setTextureCrop",      L_setTextureCrop},
