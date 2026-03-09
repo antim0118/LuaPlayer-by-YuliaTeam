@@ -54,6 +54,7 @@ typedef struct Object
     CollisionShape collision_shape;
     int cx, cy, cw, ch;
     float radius;
+    // 1 + 4*6 = 25 bytes
 
     /* LUA */
     int ref_state;

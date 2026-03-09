@@ -27,7 +27,7 @@ static int L_createBaseObject(lua_State *L) {
 
 #pragma region Object
 #define MAX_OBJECTS 2000
-static Object objects[MAX_OBJECTS] = { 0 }; // 85 * 2000 = 170k bytes = 166kb
+static Object objects[MAX_OBJECTS] = { 0 }; // 110 * 2000 = 220k bytes = 215kb
 static int objects_lastidx = -1;
 
 static int getFreeObjectIndex() {

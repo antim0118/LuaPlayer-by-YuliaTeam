@@ -1,7 +1,7 @@
 #include "BaseObject.h"
 
 #define MAX_BASE_OBJECTS 100
-static BaseObject baseobjects[MAX_BASE_OBJECTS] = { 0 }; // 16 * 100 = 1600 bytes = 1.56kb
+static BaseObject baseobjects[MAX_BASE_OBJECTS] = { 0 }; // 21 * 100 = 2100 bytes = 2.05kb
 
 #define GAMEOBJECT_REF(luaIndex, refProp)                           \
 if (args >= luaIndex && lua_isfunction(L, luaIndex)) {              \
