@@ -289,7 +289,12 @@ static int L_processDraw(lua_State *L) {
 
 #pragma region Setters / Getters
 
-#define CHECK_ARGS_AND_GET_INDEX(name, argsNum)                              \
+static void SetSize(int index, int w, int h) {
+    objects[index].w = w;
+    objects[index].h = h;
+}
+
+#define CHECK_ARGS_AND_GET_INDEX(name, argsNum)                                     \
     int args = lua_gettop(L);                                                       \
     if (args != argsNum)                                                            \
         return luaL_error(L, "Objects." #name "() takes " #argsNum " arguments");   \
@@ -331,8 +336,7 @@ static int L_setTexture(lua_State *L) {
         return luaL_error(L, "Objects.setTexture() can't get the texture");
 
     objects[index].img = img;
-    objects[index].w = img->w;
-    objects[index].h = img->h;
+    SetSize(index, img->w, img->h);
 
     return 0;
 }
@@ -418,8 +422,7 @@ static int L_getSize(lua_State *L) {
 static int L_setSize(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setSize, 3);
 
-    objects[index].w = luaL_checkinteger(L, 2);
-    objects[index].h = luaL_checkinteger(L, 3);
+    SetSize(index, luaL_checkinteger(L, 2), luaL_checkinteger(L, 3));
 
     return 0;
 }
