@@ -132,11 +132,18 @@ static int L_clear(lua_State *L) {
     return 0;
 }
 
+static int L_getCount(lua_State *L) {
+    lua_pushnumber(L, batch_lastnum + 1);
+
+    return 1;
+}
+
 static const luaL_Reg L_methods[] = {
     {"addDraw",         L_addDraw},
     {"addTile",         L_addTile},
     {"render",          L_render},
     {"clear",           L_clear},
+    {"getCount",        L_getCount},
     {0, 0}
 };
 
