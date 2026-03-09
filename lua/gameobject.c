@@ -16,8 +16,8 @@ if (refe != -1) {                              \
 #pragma region BaseObject
 static int L_createBaseObject(lua_State *L) {
     int args = lua_gettop(L);
-    if (args < 1 || args > 4)
-        return luaL_error(L, "Objects.createBaseObject(name, [onCreate], [onUpdate], [onDraw]) takes 1-4 arguments");
+    if (args < 1 || args > 5)
+        return luaL_error(L, "Objects.createBaseObject(name, [onCreate], [onUpdate], [onDraw], [onCollision]) takes 1-5 arguments");
 
     return CreateBaseObject(L);
 }
@@ -114,6 +114,14 @@ static void clearObject(lua_State *L, Object *obj) {
 
     obj->use_camera = false;
     obj->use_repeat = false;
+
+    obj->is_solid = false;
+    obj->collision_shape = COLLISION_NONE;
+    obj->cx = 0;
+    obj->cy = 0;
+    obj->cw = 0;
+    obj->ch = 0;
+    obj->radius = 0.0f;
 
     GAMEOBJECT_UNREF(obj->ref_state);
 }
@@ -232,6 +240,99 @@ static void processDraw(lua_State *L) {
     g2dSetUseCamera(usedCamera);
 }
 
+#define PUSHKVSTRING(KEY, VALUE) lua_pushstring(L, KEY); lua_pushstring(L, VALUE); lua_settable(L, -3); 
+#define PUSHKVNUMBER(KEY, VALUE) lua_pushstring(L, KEY); lua_pushnumber(L, VALUE); lua_settable(L, -3); 
+static void processCollisions(lua_State *L) {
+    if (objects_lastidx == -1)
+        return;
+
+    for (size_t i = 0; i <= objects_lastidx; i++) {
+        Object *obj = &objects[i];
+        if (obj->base == NULL || !obj->is_enabled) continue;
+
+        if (!obj->is_solid || obj->base->ref_oncollision == -1) continue;
+
+        bool preparedData = false;
+
+        int count = 1;
+        for (size_t j = 0; j <= objects_lastidx; j++) {
+            if (i == j)continue;
+
+            Object *other = &objects[j];
+            if (other->base == NULL || !other->is_enabled || !other->is_solid) continue;
+
+            if (checkCollision(obj, other)) {
+                if (!preparedData) {
+                    preparedData = true;
+                    lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_oncollision);
+                    lua_rawgeti(L, LUA_REGISTRYINDEX, obj->ref_state);
+                    lua_pushnumber(L, i);
+                    lua_newtable(L);
+                }
+
+                lua_pushinteger(L, count);
+
+                lua_pushstring(L, other->base->name);
+
+                lua_settable(L, -3);
+
+                count++;
+            }
+        }
+
+        if (preparedData) {
+            lua_call(L, 3, 0);
+        }
+    }
+}
+#undef PUSHKVSTRING
+#undef PUSHKVNUMBER
+
+static void drawCollisions(lua_State *L, int alpha) {
+    if (objects_lastidx == -1)
+        return;
+
+    bool usedCamera = g2dGetUseCamera();
+    for (size_t i = 0; i <= objects_lastidx; i++) {
+        Object *obj = &objects[i];
+        if (obj->base == NULL || !obj->is_enabled) continue;
+
+        if (!obj->is_solid) continue;
+
+        g2dSetUseCamera(true);
+        if (obj->collision_shape == COLLISION_RECT) {
+            g2dBeginRects(NULL);
+            g2dSetCoordXY(obj->x + obj->cx, obj->y + obj->cy);
+            g2dSetScaleWH(obj->cw, obj->ch);
+            g2dSetAlpha(alpha);
+            g2dSetColor(0xFF0000FF);
+            g2dAdd();
+            g2dEnd();
+        } else if (obj->collision_shape == COLLISION_CIRCLE) {
+            g2dBeginLines(G2D_STRIP);
+            g2dSetAlpha(alpha);
+            g2dSetColor(0xFF0080FF);
+
+            float x = obj->x;
+            float y = obj->y;
+            float r = obj->radius;
+
+            g2dSetCoordXY(x - r, y); g2dAdd();
+            g2dSetCoordXY(x - r / 1.5f, y - r / 1.5f); g2dAdd();
+            g2dSetCoordXY(x, y - r); g2dAdd();
+            g2dSetCoordXY(x + r / 1.5f, y - r / 1.5f); g2dAdd();
+            g2dSetCoordXY(x + r, y); g2dAdd();
+            g2dSetCoordXY(x + r / 1.5f, y + r / 1.5f); g2dAdd();
+            g2dSetCoordXY(x, y + r); g2dAdd();
+            g2dSetCoordXY(x - r / 1.5f, y + r / 1.5f); g2dAdd();
+            g2dSetCoordXY(x - r, y); g2dAdd();
+
+            g2dEnd();
+        }
+    }
+    g2dSetUseCamera(usedCamera);
+}
+
 static int L_processAll(lua_State *L) {
     processUpdate(L);
     processDraw(L);
@@ -247,6 +348,19 @@ static int L_processUpdate(lua_State *L) {
 
 static int L_processDraw(lua_State *L) {
     processDraw(L);
+
+    return 0;
+}
+
+static int L_processCollisions(lua_State *L) {
+    processCollisions(L);
+
+    return 0;
+}
+
+static int L_drawCollisions(lua_State *L) {
+    int alpha = setInterval(luaL_checkinteger(L, 1), 0, 255);
+    drawCollisions(L, alpha);
 
     return 0;
 }
@@ -467,6 +581,42 @@ static int L_getState(lua_State *L) {
     return 1;
 }
 
+static int L_setCollisionRect(lua_State *L) {
+    CHECK_VARIABLE_ARGS_AND_GET_INDEX(setCollisionRect, 1, 5);
+
+    objects[index].is_solid = true;
+    objects[index].collision_shape = COLLISION_RECT;
+
+    if (args >= 5) {
+        objects[index].cx = luaL_checkinteger(L, 2);
+        objects[index].cy = luaL_checkinteger(L, 3);
+        objects[index].cw = luaL_checkinteger(L, 4);
+        objects[index].ch = luaL_checkinteger(L, 5);
+    } else {
+        SetDefaultRectCollision(&objects[index]);
+    }
+
+    return 0;
+}
+
+static int L_setCollisionRadius(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setCollisionRadius, 2);
+
+    objects[index].is_solid = true;
+    objects[index].collision_shape = COLLISION_CIRCLE;
+    objects[index].radius = luaL_checknumber(L, 2);
+
+    return 0;
+}
+
+static int L_getCollisionRadius(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getCollisionRadius, 1);
+
+    lua_pushnumber(L, objects[index].radius);
+
+    return 1;
+}
+
 #pragma endregion
 
 static const luaL_Reg L_methods[] = {
@@ -476,6 +626,8 @@ static const luaL_Reg L_methods[] = {
     {"processAll",          L_processAll},
     {"processUpdate",       L_processUpdate},
     {"processDraw",         L_processDraw},
+    {"processCollisions",   L_processCollisions},
+    {"drawCollisions",      L_drawCollisions},
 
     {"getObjectCount",      L_getObjectCount},
 
@@ -502,6 +654,9 @@ static const luaL_Reg L_methods[] = {
     {"setUseRepeat",        L_setUseRepeat},
     {"getState",            L_getState},
 
+    {"setCollisionRect",    L_setCollisionRect},
+    {"setCollisionRadius",  L_setCollisionRadius},
+    {"getCollisionRadius",  L_getCollisionRadius},
 
     {0, 0}
 };

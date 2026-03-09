@@ -3,6 +3,13 @@
 
 #include "libs/g2d/glib2d.h"
 
+typedef enum
+{
+    COLLISION_NONE,
+    COLLISION_RECT,
+    COLLISION_CIRCLE
+} CollisionShape;
+
 typedef struct BaseObject
 {
     char *name;
@@ -41,6 +48,12 @@ typedef struct Object
     bool use_camera;
     bool use_repeat;
     // 2 bytes
+
+    /* Collisions */
+    bool is_solid;
+    CollisionShape collision_shape;
+    int cx, cy, cw, ch;
+    float radius;
 
     /* LUA */
     int ref_state;

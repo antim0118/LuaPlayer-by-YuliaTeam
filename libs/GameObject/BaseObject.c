@@ -52,10 +52,12 @@ int CreateBaseObject(lua_State *L) {
     baseobjects[index].ref_oncreate = -1;
     baseobjects[index].ref_onupdate = -1;
     baseobjects[index].ref_ondraw = -1;
+    baseobjects[index].ref_oncollision = -1;
 
     GAMEOBJECT_REF(2, baseobjects[index].ref_oncreate); // onCreate
     GAMEOBJECT_REF(3, baseobjects[index].ref_onupdate); // onUpdate
     GAMEOBJECT_REF(4, baseobjects[index].ref_ondraw);   // onDraw
+    GAMEOBJECT_REF(5, baseobjects[index].ref_oncollision);   // onCollision
 
     lua_pushnumber(L, index);
 
@@ -84,6 +86,7 @@ static void clearBaseObject(lua_State *L, BaseObject *obj) {
     GAMEOBJECT_UNREF(obj->ref_oncreate);
     GAMEOBJECT_UNREF(obj->ref_onupdate);
     GAMEOBJECT_UNREF(obj->ref_ondraw);
+    GAMEOBJECT_UNREF(obj->ref_oncollision);
 }
 
 #undef GAMEOBJECT_REF

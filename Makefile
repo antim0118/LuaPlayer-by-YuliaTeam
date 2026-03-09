@@ -8,7 +8,7 @@ SRC_OBJS = libs/callbacks.o libs/intra/intraFont.o libs/intra/libccc.o libs/ctrl
 	libs/pmp/mpegbase.o libs/pmp/audiodecoder.o libs/pmp/avc.o libs/pmp/mem64.o libs/pmp/pmp.o \
 	libs/pmp/pmp_decode.o libs/pmp/pmp_file.o libs/pmp/pmp_play.o libs/pmp/pmp_read.o \
 	libs/Mp4/atom.o libs/Mp4/util.o libs/Mp4/mp4info.o \
-	libs/GameObject/BaseObject.o
+	libs/GameObject/BaseObject.o libs/GameObject/Collisions.o
 
 LUA_SRC_OBJECTS = lua/src/lapi.o lua/src/lauxlib.o lua/src/lbaselib.o \
 	lua/src/lcode.o lua/src/ldblib.o lua/src/ldebug.o lua/src/ldo.o \
