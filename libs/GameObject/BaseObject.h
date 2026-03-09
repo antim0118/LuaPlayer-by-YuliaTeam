@@ -33,14 +33,7 @@
 #include <pspusbstor.h>
 #include <pspsdk.h>
 
-typedef struct BaseObject
-{
-    char *name;
-    uint32_t name_hash;
-
-    int ref_oncreate, ref_onupdate, ref_ondraw;
-    //4*4=16
-} BaseObject;
+#include "Structs.h"
 
 
 int CreateBaseObject(lua_State *L);

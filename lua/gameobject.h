@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "libs/GameObject/BaseObject.h"
+#include "libs/GameObject/Object.h"
 
 
 int GAMEOBJECT_init(lua_State *L);

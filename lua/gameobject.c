@@ -26,40 +26,6 @@ static int L_createBaseObject(lua_State *L) {
 #pragma endregion
 
 #pragma region Object
-typedef struct Object
-{
-    BaseObject *base;
-    // 4 bytes
-
-    bool is_created;
-    bool is_visible, is_enabled;
-    // 3 bytes
-
-    g2dImage *img;
-    float x, y, z;
-    int w, h;
-    int crop_x, crop_y, crop_w, crop_h;
-    float origin_x, origin_y;
-    // 4*12 = 48 bytes
-
-    float speed_x, speed_y;
-    // 4*2 = 8 bytes
-
-    int rotation;
-    u32 color;
-    int alpha;
-    int blending_mode;
-    // 4*4 = 16 bytes
-
-    bool use_camera;
-    bool use_repeat;
-    // 2 bytes
-
-    /* LUA */
-    int ref_state;
-    // 4*1 = 4 bytes
-} Object;
-
 #define MAX_OBJECTS 2000
 static Object objects[MAX_OBJECTS] = { 0 }; // 85 * 2000 = 170k bytes = 166kb
 static int objects_lastidx = -1;
