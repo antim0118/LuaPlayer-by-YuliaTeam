@@ -1,4 +1,4 @@
-#include "LUA.h"
+#include "lgn.h"
 
 extern g2dImage **toG2D(lua_State *L, int index);
 extern g2dColor *toColor(lua_State *L, int index);
@@ -229,11 +229,43 @@ static int LGN_drawMenuTrees(lua_State *L) {
     return 0;
 }
 
+static int LGN_testMath(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 2)
+        return luaL_error(L, "LGN_testMath(count, useVfpu) takes 2 arguments");
+
+    int count = luaL_checkinteger(L, 1);
+    bool useVfpu = lua_toboolean(L, 2) != 0;
+
+    clock_t timer = clock();
+    float result = 0.0f;
+    if (useVfpu) {
+        for (int radians = 0; radians < count; radians++) {
+            __asm__ volatile (
+                "mtv    %1, s000\n"          // s000 = radians
+                "vcst.s s001, VFPU_2_PI\n"   // s001 = 2/π
+                "vmul.s s000, s000, s001\n"  // s000 = radians * (2/π)
+                "vrot.p c010, s000, [s, c]\n" // s010 = sin(s000), s011 = cos(s000)
+                "mfv    %0, s011\n"          // result = s011
+                : "=r"(result) : "r"(radians)
+            );
+        }
+
+    } else {
+        for (int i = 0; i < count; i++)
+            cosf(i);
+    }
+    lua_pushnumber(L, (float)(clock() - timer) / CLOCKS_PER_SEC);
+
+    return 1;
+}
+
 static const luaL_Reg LGN_methods[] = {
     {"draw",                LGN_draw},
     {"drawMenuTitle",       LGN_drawMenuTitle},
     {"drawMenuButtons",     LGN_drawMenuButtons},
     {"drawMenuTrees",       LGN_drawMenuTrees},
+    {"testMath",            LGN_testMath},
     {0, 0}
 };
 
