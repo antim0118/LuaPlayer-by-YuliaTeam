@@ -400,12 +400,28 @@ static int L_setVisible(lua_State *L) {
     return 0;
 }
 
+static int L_getVisible(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getVisible, 1);
+
+    lua_pushboolean(L, objects[index].is_visible != 0);
+
+    return 1;
+}
+
 static int L_setEnabled(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setEnabled, 2);
 
     objects[index].is_enabled = lua_toboolean(L, 2) != 0;
 
     return 0;
+}
+
+static int L_getEnabled(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getEnabled, 1);
+
+    lua_pushboolean(L, objects[index].is_enabled != 0);
+
+    return 1;
 }
 
 static int L_setTexture(lua_State *L) {
@@ -632,7 +648,9 @@ static const luaL_Reg L_methods[] = {
     {"getObjectCount",      L_getObjectCount},
 
     {"setVisible",          L_setVisible},
+    {"getVisible",          L_getVisible},
     {"setEnabled",          L_setEnabled},
+    {"getEnabled",          L_getEnabled},
 
     {"setTexture",          L_setTexture},
     {"setTextureCrop",      L_setTextureCrop},
