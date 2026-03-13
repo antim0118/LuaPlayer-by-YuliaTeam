@@ -1,29 +1,32 @@
 TARGET = LuaPlayerYT
 
-SRC_OBJS = libs/callbacks.o libs/intra/intraFont.o libs/intra/libccc.o libs/ctrl/controls.o \
-	libs/g2d/glib2d.o libs/intra/libtext.o libs/vfpu_math.o \
-	libs/aalib/pspaalib.o libs/aalib/pspaalibat3.o \
-	libs/aalib/pspaalibogg.o libs/aalib/pspaalibflac.o libs/aalib/pspaalibcommon.o \
-	libs/aalib/pspaalibeffects.o libs/aalib/pspaalibwav.o \
-	libs/pmp/mpegbase.o libs/pmp/audiodecoder.o libs/pmp/avc.o libs/pmp/mem64.o libs/pmp/pmp.o \
-	libs/pmp/pmp_decode.o libs/pmp/pmp_file.o libs/pmp/pmp_play.o libs/pmp/pmp_read.o \
-	libs/Mp4/atom.o libs/Mp4/util.o libs/Mp4/mp4info.o \
+SRC_OBJS = libs/callbacks.o libs/intra/intraFont.o libs/intra/libccc.o 				\
+	libs/ctrl/controls.o libs/g2d/glib2d.o libs/intra/libtext.o libs/vfpu_math.o 	\
+	libs/aalib/pspaalib.o libs/aalib/pspaalibat3.o 									\
+	libs/aalib/pspaalibogg.o libs/aalib/pspaalibflac.o libs/aalib/pspaalibcommon.o 	\
+	libs/aalib/pspaalibeffects.o libs/aalib/pspaalibwav.o 							\
 	libs/GameObject/BaseObject.o libs/GameObject/Collisions.o
 
-LUA_SRC_OBJECTS = lua/src/lapi.o lua/src/lauxlib.o lua/src/lbaselib.o \
-	lua/src/lcode.o lua/src/ldblib.o lua/src/ldebug.o lua/src/ldo.o \
-	lua/src/ldump.o lua/src/lfunc.o lua/src/lgc.o lua/src/linit.o \
-	lua/src/liolib.o lua/src/llex.o lua/src/lmathlib.o lua/src/lmem.o \
-	lua/src/loadlib.o lua/src/lobject.o lua/src/lopcodes.o lua/src/loslib.o \
-	lua/src/lparser.o lua/src/lstate.o lua/src/lstring.o lua/src/lstrlib.o \
-	lua/src/ltable.o lua/src/ltablib.o lua/src/ltm.o lua/src/lundump.o \
+SRC_OBJS_NOT_IMPORTANT = libs/pmp/mpegbase.o libs/pmp/audiodecoder.o libs/pmp/avc.o \
+	libs/pmp/mem64.o libs/pmp/pmp.o libs/pmp/pmp_decode.o libs/pmp/pmp_file.o 		\
+	libs/pmp/pmp_play.o libs/pmp/pmp_read.o 										\
+	libs/Mp4/atom.o libs/Mp4/util.o libs/Mp4/mp4info.o
+
+LUA_SRC_OBJECTS = lua/src/lapi.o lua/src/lauxlib.o lua/src/lbaselib.o 				\
+	lua/src/lcode.o lua/src/ldblib.o lua/src/ldebug.o lua/src/ldo.o 				\
+	lua/src/ldump.o lua/src/lfunc.o lua/src/lgc.o lua/src/linit.o 					\
+	lua/src/liolib.o lua/src/llex.o lua/src/lmathlib.o lua/src/lmem.o 				\
+	lua/src/loadlib.o lua/src/lobject.o lua/src/lopcodes.o lua/src/loslib.o 		\
+	lua/src/lparser.o lua/src/lstate.o lua/src/lstring.o lua/src/lstrlib.o 			\
+	lua/src/ltable.o lua/src/ltablib.o lua/src/ltm.o lua/src/lundump.o 				\
 	lua/src/lvm.o lua/src/lzio.o lua/src/print.o
 
-LUA_OBJS = lua/graphics.o lua/pmp.o lua/LUA.o lua/ctrl.o lua/system.o \
-	lua/lgn.o lua/batch.o lua/gameobject.o lua/gamemaker.o \
+LUA_OBJS = lua/graphics.o lua/pmp.o lua/LUA.o lua/ctrl.o lua/system.o 				\
+	lua/lgn.o lua/batch.o lua/gameobject.o lua/gamemaker.o 							\
 	lua/timer.o lua/audio.o lua/usb.o lua/vfpu_math.o
 
-OBJS = $(SRC_OBJS) $(LUA_SRC_OBJECTS) $(LUA_OBJS) LP.o
+OBJS = $(SRC_OBJS) $(SRC_OBJS_NOT_IMPORTANT) $(LUA_SRC_OBJECTS) $(LUA_OBJS) LP.o
+OBJS_CLEAN = $(SRC_OBJS) $(LUA_OBJS) LP.o
 
 INCDIR = include
 LIBDIR = lib
@@ -49,3 +52,8 @@ PSP_EBOOT_PIC1 = res/000.png
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak
+
+clean: 
+	-rm -f $(FINAL_TARGET) $(EXTRA_CLEAN) $(OBJS_CLEAN) $(PSP_EBOOT_SFO) $(PSP_EBOOT) $(EXTRA_TARGETS)
+
+rebuild: clean all
