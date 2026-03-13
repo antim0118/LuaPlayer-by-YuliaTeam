@@ -398,6 +398,14 @@ static void SetSize(int index, int w, int h) {
         return luaL_error(L, "Objects." #name "() takes from " #argsNumFrom " to " #argsNumTo " arguments");    \
     int index = luaL_checkinteger(L, 1);
 
+static int L_getBaseName(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getBaseName, 1);
+
+    lua_pushstring(L, objects[index].base->name);
+
+    return 1;
+}
+
 static int L_getObjectCount(lua_State *L) {
     lua_pushnumber(L, getObjectCount());
 
@@ -665,6 +673,7 @@ static const luaL_Reg L_methods[] = {
     {"processCollisions",   L_processCollisions},
     {"drawCollisions",      L_drawCollisions},
 
+    {"getBaseName",         L_getBaseName},
     {"getObjectCount",      L_getObjectCount},
 
     {"setVisible",          L_setVisible},
