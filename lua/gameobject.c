@@ -175,7 +175,7 @@ static void processUpdate(lua_State *L) {
     /* Update */
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (obj->base == NULL || !obj->is_enabled) continue;
+        if (obj->base == NULL || !obj->is_enabled || !obj->is_created) continue;
 
         if (obj->base->ref_onupdate != -1) {
             lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_onupdate);
@@ -198,7 +198,7 @@ static void processDraw(lua_State *L) {
     bool changedTex = true;
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (obj->base == NULL || !obj->is_visible) continue;
+        if (obj->base == NULL || !obj->is_visible || !obj->is_created) continue;
 
         if (obj->base->ref_ondraw != -1) {
             // custom draw / onDraw
@@ -249,7 +249,7 @@ static void processCollisions(lua_State *L) {
 
     for (size_t i = 0; i <= objects_lastidx; i++) {
         Object *obj = &objects[i];
-        if (obj->base == NULL || !obj->is_enabled) continue;
+        if (obj->base == NULL || !obj->is_enabled || !obj->is_created) continue;
 
         if (!obj->is_solid || obj->base->ref_oncollision == -1) continue;
 
