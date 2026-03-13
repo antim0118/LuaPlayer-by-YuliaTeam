@@ -50,11 +50,11 @@ typedef struct Object
     // 2 bytes
 
     /* Collisions */
-    bool is_solid;
+    bool is_solid, is_trigger;
     CollisionShape collision_shape;
     int cx, cy, cw, ch;
     float radius;
-    // 1 + 4*6 = 25 bytes
+    // 2 + 4*6 = 26 bytes
 
     /* LUA */
     int ref_state;

@@ -116,6 +116,7 @@ static void clearObject(lua_State *L, Object *obj) {
     obj->use_repeat = false;
 
     obj->is_solid = false;
+    obj->is_trigger = false;
     obj->collision_shape = COLLISION_NONE;
     obj->cx = 0;
     obj->cy = 0;
@@ -259,7 +260,7 @@ static void processCollisions(lua_State *L) {
             if (i == j)continue;
 
             Object *other = &objects[j];
-            if (other->base == NULL || !other->is_enabled || !other->is_solid) continue;
+            if (other->base == NULL || !other->is_enabled || !other->is_solid || other->is_trigger) continue;
 
             if (checkCollision(obj, other)) {
                 if (!preparedData) {
@@ -305,7 +306,7 @@ static void drawCollisions(lua_State *L, int alpha) {
             g2dSetCoordXY(obj->x + obj->cx, obj->y + obj->cy);
             g2dSetScaleWH(obj->cw, obj->ch);
             g2dSetAlpha(alpha);
-            g2dSetColor(0xFF0000FF);
+            g2dSetColor(obj->is_trigger ? 0xFF0080FF : 0xFF0000FF); // trigger ? orange : red
             g2dAdd();
             g2dEnd();
         } else if (obj->collision_shape == COLLISION_CIRCLE) {
@@ -615,6 +616,14 @@ static int L_setCollisionRect(lua_State *L) {
     return 0;
 }
 
+static int L_setCollisionTrigger(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setCollisionTrigger, 2);
+
+    objects[index].is_trigger = lua_toboolean(L, 2) != 0;
+
+    return 0;
+}
+
 static int L_setCollisionRadius(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setCollisionRadius, 2);
 
@@ -673,6 +682,7 @@ static const luaL_Reg L_methods[] = {
     {"getState",            L_getState},
 
     {"setCollisionRect",    L_setCollisionRect},
+    {"setCollisionTrigger", L_setCollisionTrigger},
     {"setCollisionRadius",  L_setCollisionRadius},
     {"getCollisionRadius",  L_getCollisionRadius},
 
