@@ -253,6 +253,7 @@ static void processCollisions(lua_State *L) {
 
         if (!obj->is_solid || obj->base->ref_oncollision == -1) continue;
 
+        bool objIsPlayer = obj->collision_shape == COLLISION_CIRCLE; // is player or npc
         bool preparedData = false;
 
         int count = 1;
@@ -262,7 +263,17 @@ static void processCollisions(lua_State *L) {
             Object *other = &objects[j];
             if (other->base == NULL || !other->is_enabled || !other->is_solid || other->is_trigger) continue;
 
-            if (checkCollision(obj, other)) {
+            bool doneCorrection = false;
+            if (objIsPlayer && other->collision_shape == COLLISION_RECT) {
+                float dx = 0.0f, dy = 0.0f;
+                if (correctPlayerCollision(obj, other, &dx, &dy)) {
+                    obj->x += dx;
+                    obj->y += dy;
+                    doneCorrection = true;
+                }
+            }
+
+            if (doneCorrection || checkCollision(obj, other)) {
                 if (!preparedData) {
                     preparedData = true;
                     lua_rawgeti(L, LUA_REGISTRYINDEX, obj->base->ref_oncollision);
@@ -610,7 +621,7 @@ static int L_setCollisionRect(lua_State *L) {
         objects[index].cw = luaL_checkinteger(L, 4);
         objects[index].ch = luaL_checkinteger(L, 5);
     } else {
-        SetDefaultRectCollision(&objects[index]);
+        setDefaultRectCollision(&objects[index]);
     }
 
     return 0;

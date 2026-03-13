@@ -46,7 +46,33 @@ bool checkCollision(Object *a, Object *b) {
     return false;
 }
 
-void SetDefaultRectCollision(Object *rect) {
+bool correctPlayerCollision(Object *player, Object *rect, float *dx, float *dy) {
+    float rx = rect->x + rect->cx;
+    float ry = rect->y + rect->cy;
+    float closestX = fmaxf(rx, fminf(player->x, rx + rect->cw));
+    float closestY = fmaxf(ry, fminf(player->y, ry + rect->ch));
+
+    float distX = player->x - closestX;
+    float distY = player->y - closestY;
+    float distSqrt = distX * distX + distY * distY;
+
+    if (distSqrt > player->radius * player->radius)
+        return false;
+
+    float distance = sqrtf(distSqrt);
+
+    if (distance < 1e-2f) {
+        *dx = player->radius;
+        *dy = 0.0f;
+    } else {
+        *dx = distX * (player->radius - distance) / distance;
+        *dy = distY * (player->radius - distance) / distance;
+    }
+
+    return true;
+}
+
+void setDefaultRectCollision(Object *rect) {
     if (rect->rotation == 0) {
         rect->cx = -rect->origin_x * rect->w;
         rect->cy = -rect->origin_y * rect->h;
