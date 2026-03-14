@@ -82,7 +82,8 @@ static int L_addTile(lua_State *L) {
 }
 
 static int L_render(lua_State *L) {
-    //Batch.render()
+    if (batch_lastnum == -1)
+        return 0;
 
     for (size_t i = 0; i <= batch_lastnum; i++) {
         BatchData *data = &batch_data[i];
