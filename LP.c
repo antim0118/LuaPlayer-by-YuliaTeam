@@ -242,7 +242,7 @@ void showError(lua_State *L, char *error) {
         intraFontPrintColumn(luaFont, x - 100, y - 65, 300, error);
 #else
         intraFontActivate(luaFont, true);
-        intraFontPrintColumn(luaFont, 10, 10 + intraFontTextHeight(luaFont), 480 - 10 * 2, error);
+        intraFontPrintColumn(luaFont, 50, 10 + intraFontTextHeight(luaFont), 480 - 50 * 2, error);
 #endif
 
         //printf("freeRam: %d\n", get_freeRam());
