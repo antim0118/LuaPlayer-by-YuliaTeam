@@ -66,6 +66,21 @@ static int COLOR_create(lua_State *L) {
     return 1;
 }
 
+static int COLOR_fromNumber(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 1)
+        return luaL_error(L, "Color.fromNumber(num) takes 1 argument");
+
+    unsigned int num = luaL_checkinteger(L, 1);
+
+    if (num < 0x000000 || num > 0xFFFFFF)
+        return luaL_error(L, "Color.fromNumber(num) - number too low or too high");
+
+    *pushColor(L) = num ^ 0xFF000000;
+
+    return 1;
+}
+
 static int COLOR_getC(lua_State *L) {
     int args = lua_gettop(L);
     if (args != 1 && args != 2)
@@ -100,8 +115,9 @@ static int COLOR_getC(lua_State *L) {
 }
 
 static const luaL_Reg COLOR_methods[] = {
-    {"new",    COLOR_create},
-    {"get",    COLOR_getC},
+    {"new",         COLOR_create},
+    {"fromNumber",  COLOR_fromNumber},
+    {"get",         COLOR_getC},
     {0, 0}
 };
 
