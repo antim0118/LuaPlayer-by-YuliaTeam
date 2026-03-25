@@ -3,7 +3,7 @@
 extern g2dImage **toG2D(lua_State *L, int index);
 extern g2dColor *toColor(lua_State *L, int index);
 
-#define BATCH_MAX 64
+#define BATCH_MAX 128
 typedef enum
 {
     BATCH_TYPE_TEX,
@@ -19,7 +19,7 @@ typedef struct
     // 1+4+8+8 = 21 bytes
 } BatchData;
 
-static BatchData batch_data[BATCH_MAX] = { 0 };
+static BatchData batch_data[BATCH_MAX] = { 0 }; // 5248 bytes = 5.13kb
 static int batch_lastnum = -1;
 
 int getNextIndex() {
@@ -30,24 +30,18 @@ int getNextIndex() {
 }
 
 static int L_addDraw(lua_State *L) {
-    //Batch.addDraw(tex, x, y, )
     if (lua_gettop(L) != 4)
-        return luaL_error(L, "Batch_addDraw(...) takes ? argument");
+        return luaL_error(L, "L_addDraw(...) takes ? argument");
 
     g2dImage *img = *toG2D(L, 1);
-
-    int x = luaL_checknumber(L, 2);
-    int y = luaL_checknumber(L, 3);
-    int z = luaL_checknumber(L, 4);
 
     int idx = getNextIndex();
     batch_data[idx].type = BATCH_TYPE_TEX;
     batch_data[idx].img = img;
-    batch_data[idx].x = x;
-    batch_data[idx].y = y;
-    batch_data[idx].z = z;
 
-    printf("Batch_addDraw [%d] - x:%d  y:%d z:%d \n", idx, x, y, z);
+    batch_data[idx].x = luaL_checknumber(L, 2);
+    batch_data[idx].y = luaL_checknumber(L, 3);
+    batch_data[idx].z = 32767 - luaL_checknumber(L, 4);
 
     lua_pushinteger(L, idx);
 
@@ -57,24 +51,18 @@ static int L_addDraw(lua_State *L) {
 static int L_addTile(lua_State *L) {
     //Batch.addTile(tex, x, y, w, h)
     if (lua_gettop(L) != 6)
-        return luaL_error(L, "Batch_addDraw(...) takes ? argument");
+        return luaL_error(L, "L_addTile(...) takes ? argument");
 
     g2dImage *img = *toG2D(L, 1);
-
-    int x = luaL_checkinteger(L, 2);
-    int y = luaL_checkinteger(L, 3);
-    int z = luaL_checkinteger(L, 4);
-    int w = luaL_checkinteger(L, 5);
-    int h = luaL_checkinteger(L, 6);
 
     int idx = getNextIndex();
     batch_data[idx].type = BATCH_TYPE_TILE;
     batch_data[idx].img = img;
-    batch_data[idx].x = x;
-    batch_data[idx].y = y;
-    batch_data[idx].z = 32767 - z;
-    batch_data[idx].tile_w = w;
-    batch_data[idx].tile_h = h;
+    batch_data[idx].x = luaL_checkinteger(L, 2);
+    batch_data[idx].y = luaL_checkinteger(L, 3);
+    batch_data[idx].z = 32767 - luaL_checkinteger(L, 4);
+    batch_data[idx].tile_w = luaL_checkinteger(L, 5);
+    batch_data[idx].tile_h = luaL_checkinteger(L, 6);
 
     lua_pushinteger(L, idx);
 
