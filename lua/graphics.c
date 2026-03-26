@@ -1077,7 +1077,7 @@ static int G2D_getCalls(lua_State *L) {
 static int G2D_setCamera(lua_State *L) {
     int args = lua_gettop(L);
     if (args != 1 && args != 3)
-        return luaL_error(L, "G2D_setCamera(use, [x], [y]) takes 1 or 3 arguments");
+        return luaL_error(L, "screen.setCamera(use, [x], [y]) takes 1 or 3 arguments");
 
     g2dSetUseCamera(lua_toboolean(L, 1) != 0);
 
