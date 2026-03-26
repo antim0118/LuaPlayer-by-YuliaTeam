@@ -7,7 +7,8 @@ extern g2dColor *toColor(lua_State *L, int index);
 typedef enum
 {
     BATCH_TYPE_TEX,
-    BATCH_TYPE_TILE
+    BATCH_TYPE_TILE,
+    BATCH_TYPE_CROPPED_TEX
 } BATCH_TYPES;
 
 typedef struct
@@ -16,7 +17,8 @@ typedef struct
     g2dImage *img;
     int x, y, z;
     int tile_w, tile_h;
-    // 1+4+8+8 = 21 bytes
+    int src_x, src_y, src_w, src_h;
+    // 1+4+12+8+16 = 41 bytes
 } BatchData;
 
 static BatchData batch_data[BATCH_MAX] = { 0 }; // 5248 bytes = 5.13kb
@@ -42,6 +44,30 @@ static int L_addDraw(lua_State *L) {
     batch_data[idx].x = luaL_checknumber(L, 2);
     batch_data[idx].y = luaL_checknumber(L, 3);
     batch_data[idx].z = 32767 - luaL_checknumber(L, 4);
+
+    lua_pushinteger(L, idx);
+
+    return 1;
+}
+
+static int L_addCroppedDraw(lua_State *L) {
+    if (lua_gettop(L) != 8)
+        return luaL_error(L, "L_addCroppedDraw(...) takes ? argument");
+
+    g2dImage *img = *toG2D(L, 1);
+
+    int idx = getNextIndex();
+    batch_data[idx].type = BATCH_TYPE_CROPPED_TEX;
+    batch_data[idx].img = img;
+
+    batch_data[idx].x = luaL_checknumber(L, 2);
+    batch_data[idx].y = luaL_checknumber(L, 3);
+    batch_data[idx].z = 32767 - luaL_checknumber(L, 4);
+
+    batch_data[idx].src_x = luaL_checknumber(L, 5);
+    batch_data[idx].src_y = luaL_checknumber(L, 6);
+    batch_data[idx].src_w = luaL_checknumber(L, 7);
+    batch_data[idx].src_h = luaL_checknumber(L, 8);
 
     lua_pushinteger(L, idx);
 
@@ -99,13 +125,20 @@ static int L_render(lua_State *L) {
             // g2dSetAlpha(255);
             g2dAdd();
         } else if (data->type == BATCH_TYPE_TILE) {
-            g2dBeginRects(data->img);
             g2dSetTexLinear(false);
             g2dSetTexRepeat(true);
             g2dSetCoordXYZ(data->x, data->y, data->z);
             g2dSetCropXY(0, 0);
             g2dSetCropWH(data->tile_w, data->tile_h);
             g2dSetScaleWH(data->tile_w, data->tile_h);
+            g2dAdd();
+        } else if (data->type == BATCH_TYPE_CROPPED_TEX) {
+            g2dSetTexLinear(false);
+            g2dSetTexRepeat(false);
+            g2dSetCoordXYZ(data->x, data->y, data->z);
+            g2dSetCropXY(data->src_x, data->src_y);
+            g2dSetCropWH(data->src_w, data->src_h);
+            g2dSetScaleWH(data->src_w, data->src_h);
             g2dAdd();
         }
 
@@ -129,6 +162,7 @@ static int L_getCount(lua_State *L) {
 
 static const luaL_Reg L_methods[] = {
     {"addDraw",         L_addDraw},
+    {"addCroppedDraw",  L_addCroppedDraw},
     {"addTile",         L_addTile},
     {"render",          L_render},
     {"clear",           L_clear},
