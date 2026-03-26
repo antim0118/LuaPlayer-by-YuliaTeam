@@ -179,6 +179,7 @@ void initEngine(lua_State *L) {
 void showError(lua_State *L, char *error) {
     bool USB_ACTIVE = FALSE;
 
+    g2dSetCameraXY(0, 0);
     intraFontSetStyle(luaFont, 1.f, BLACK, 0, 0.f, 0);
 
     //chdir("/");
@@ -242,7 +243,7 @@ void showError(lua_State *L, char *error) {
         intraFontPrintColumn(luaFont, x - 100, y - 65, 300, error);
 #else
         intraFontActivate(luaFont, true);
-        intraFontPrintColumn(luaFont, 50, 10 + intraFontTextHeight(luaFont), 480 - 50 * 2, error);
+        intraFontPrintColumn(luaFont, 20, 10 + intraFontTextHeight(luaFont), 480 - 50 * 2, error);
 #endif
 
         //printf("freeRam: %d\n", get_freeRam());
