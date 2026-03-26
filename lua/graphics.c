@@ -1097,6 +1097,32 @@ static int G2D_getCamera(lua_State *L) {
     return 2;
 }
 
+static int G2D_setScissor(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 4)
+        return luaL_error(L, "screen.setScissor(x, y, w, h) takes 4 arguments");
+
+    int x = luaL_checkint(L, 1);
+    int y = luaL_checkint(L, 2);
+    int w = luaL_checkint(L, 3);
+    int h = luaL_checkint(L, 4);
+
+    g2dSetScissor(x, y, w, h);
+
+    return 0;
+}
+
+static int G2D_resetScissor(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 0)
+        return luaL_error(L, "screen.resetScissor() takes 0 arguments");
+
+    g2dResetScissor();
+
+    return 0;
+}
+
+
 static const luaL_Reg GFX_methods[] = {
     {"clear",               G2D_clear},
     {"flip",                G2D_flip},
@@ -1109,6 +1135,8 @@ static const luaL_Reg GFX_methods[] = {
     {"getCalls",            G2D_getCalls},
     {"setCamera",           G2D_setCamera},
     {"getCamera",           G2D_getCamera},
+    {"setScissor",          G2D_setScissor},
+    {"resetScissor",        G2D_resetScissor},
     //{"drawCube",     G2D_drawCube},
     {0, 0}
 };
