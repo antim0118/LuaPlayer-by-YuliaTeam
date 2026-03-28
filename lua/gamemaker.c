@@ -2,17 +2,31 @@
 
 extern g2dImage **toG2D(lua_State *L, int index);
 extern g2dColor *toColor(lua_State *L, int index);
+extern intraFont **getintraFont(lua_State *L, int index);
 
+static u32 color = 0;
 static int blend_mode = -1;
 static int rotation = 0;
 static int alpha = 255;
 static bool linear = false;
+static intraFont *font = NULL;
 
 static void drawRect(int x1, int y1, int x2, int y2, g2dColor col1, g2dColor col2, g2dColor col3, g2dColor col4) {
     g2dSetCoordXY(x1, y1); g2dSetColor(col1); g2dAdd(); // TL
     g2dSetCoordXY(x2, y1); g2dSetColor(col2); g2dAdd(); // TR
     g2dSetCoordXY(x2, y2); g2dSetColor(col3); g2dAdd(); // BR
     g2dSetCoordXY(x1, y2); g2dSetColor(col4); g2dAdd(); // BL
+}
+
+static intraFont *getFont(lua_State *L, int index) {
+    if (lua_isnil(L, index))
+        return luaFont;
+
+    intraFont *font = *getintraFont(L, index);
+    if (font == NULL)
+        return luaFont;
+
+    return font;
 }
 
 static int L_empty(lua_State *L) {
@@ -31,6 +45,26 @@ static int L_draw_set_blend_mode(lua_State *L) {
 
     return 0;
 }
+
+static int L_draw_set_color(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 1)
+        return luaL_error(L, ".draw_set_color(color) takes 1 argument");
+
+    color = *toColor(L, 1);
+
+    return 0;
+}
+
+static int L_draw_set_font(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 1)
+        return luaL_error(L, ".draw_set_font(font) takes 1 argument");
+
+    font = getFont(L, 1);
+
+    return 0;
+}
 #pragma endregion
 
 static int L_draw(lua_State *L) {
@@ -42,13 +76,11 @@ static int L_draw(lua_State *L) {
 
     int x = luaL_checknumber(L, 2), y = luaL_checknumber(L, 3), z = luaL_optnumber(L, 4, 0);
     int w = luaL_optnumber(L, 5, img->w), h = luaL_optnumber(L, 6, img->h);
-    u32 color = (args >= 7 && !lua_isnil(L, 7)) ? *toColor(L, 7) : 0;
-    int srcx = luaL_optnumber(L, 8, 0), srcy = luaL_optnumber(L, 9, 0);
-    int srcw = luaL_optnumber(L, 10, img->w), srch = luaL_optnumber(L, 11, img->h);
-    float origin_x = luaL_optnumber(L, 12, 0);
-    float origin_y = luaL_optnumber(L, 13, 0);
-    bool linear = (lua_toboolean(L, 14)) ? true : false;
-    bool repeat = (lua_toboolean(L, 15)) ? true : false;
+    int srcx = luaL_optnumber(L, 7, 0), srcy = luaL_optnumber(L, 8, 0);
+    int srcw = luaL_optnumber(L, 9, img->w), srch = luaL_optnumber(L, 10, img->h);
+    float origin_x = luaL_optnumber(L, 11, 0);
+    float origin_y = luaL_optnumber(L, 12, 0);
+    bool repeat = (lua_toboolean(L, 13)) ? true : false;
 
     g2dBeginRects(img);
     g2dSetOriginXY(origin_x, origin_y);
@@ -166,7 +198,7 @@ static int L_draw_sprite_tiled(lua_State *L) {
     g2dSetScaleWH(480, 272);
     g2dSetAlpha(alpha);
     g2dSetRotation(-rotation);
-    //g2dSetColor(c1);
+    g2dSetColor(color);
     g2dAdd();
 
     g2dEnd();
@@ -234,6 +266,8 @@ static int L_draw_circle_color(lua_State *L) {
 static const luaL_Reg L_methods[] = {
     {"draw",                    L_draw},
     {"draw_set_blend_mode",     L_draw_set_blend_mode},
+    {"draw_set_color",          L_draw_set_color},
+    {"draw_set_font",           L_draw_set_font},
     {"draw_sprite_ext",         L_draw_sprite_ext},
     {"draw_sprite_general",     L_draw_sprite_general},
     {"draw_sprite_tiled",       L_draw_sprite_tiled},
@@ -245,6 +279,7 @@ static const luaL_Reg L_methods[] = {
 
 
 int GAMEMAKER_init(lua_State *L) {
+    font = luaFont;
     luaL_register(L, "gm", L_methods);
     return 0;
 }
