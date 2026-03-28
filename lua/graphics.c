@@ -227,7 +227,7 @@ void INTRA_fontUnloadAll() {
     printLoadedItems((void **)loadedFonts, fontCount, fontCapacity, "Fonts");
 }
 
-intraFont *getFont(lua_State *L, int index) {
+static intraFont *getFont(lua_State *L, int index) {
     if (lua_isnil(L, index))
         return luaFont;
 
