@@ -289,6 +289,27 @@ static int L_draw_circle_color(lua_State *L) {
     return 0;
 }
 
+static int L_draw_text(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 3)
+        return luaL_error(L, ".draw_text(x, y, text) takes 3 arguments");
+
+    int x = luaL_checknumber(L, 1);
+    int y = luaL_checknumber(L, 2);
+    const char *text = luaL_checkstring(L, 3);
+    float size = 1;
+    float alMode = INTRAFONT_ALIGN_LEFT;
+
+    intraFontSetStyle(font, size, color, 0, rotation, alMode);
+    intraFontActivate(font, linear);
+
+    int viewX = g2dGetCameraX();
+    int viewY = g2dGetCameraY();
+    intraFontPrint(font, x, y + intraFontTextHeight(font), text);
+
+    return 0;
+}
+
 static const luaL_Reg L_methods[] = {
     {"draw",                    L_draw},
     {"draw_set_blend_mode",     L_draw_set_blend_mode},
@@ -300,6 +321,7 @@ static const luaL_Reg L_methods[] = {
     {"draw_sprite_tiled",       L_draw_sprite_tiled},
     {"draw_rectangle_color",    L_draw_rectangle_color},
     {"draw_circle_color",       L_draw_circle_color},
+    {"draw_text",               L_draw_text},
 
     {0, 0}
 };
