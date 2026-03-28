@@ -112,6 +112,10 @@ static int L_createObject(lua_State *L) {
 }
 
 static int L_clearObjects(lua_State *L) {
+    for (size_t i = 0; i < objects.capacity; i++) {
+        resetObjectToDefault(L, &objects.data[i]);
+    }
+
     ObjectArrayClear(&objects, false);
     clock_delta = clock();
 
