@@ -65,6 +65,16 @@ static int L_draw_set_font(lua_State *L) {
 
     return 0;
 }
+
+static int L_draw_set_alpha(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 1)
+        return luaL_error(L, ".draw_set_alpha(alpha) takes 1 argument");
+
+    alpha = setInterval(luaL_checknumber(L, 1) * 255, 0, 255);
+
+    return 0;
+}
 #pragma endregion
 
 static int L_draw(lua_State *L) {
@@ -315,6 +325,7 @@ static const luaL_Reg L_methods[] = {
     {"draw_set_blend_mode",     L_draw_set_blend_mode},
     {"draw_set_color",          L_draw_set_color},
     {"draw_set_font",           L_draw_set_font},
+    {"draw_set_alpha",          L_draw_set_alpha},
     {"draw_sprite",             L_draw_sprite},
     {"draw_sprite_ext",         L_draw_sprite_ext},
     {"draw_sprite_general",     L_draw_sprite_general},
