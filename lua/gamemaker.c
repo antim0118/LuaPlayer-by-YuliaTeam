@@ -21,6 +21,18 @@ static int L_empty(lua_State *L) {
     return 0;
 }
 
+#pragma region Setters
+static int L_draw_set_blend_mode(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 1)
+        return luaL_error(L, ".draw_set_blend_mode(mode) takes 1 argument");
+
+    blend_mode = luaL_checknumber(L, 1);
+
+    return 0;
+}
+#pragma endregion
+
 static int L_draw(lua_State *L) {
     int args = lua_gettop(L);
 
@@ -162,16 +174,6 @@ static int L_draw_sprite_tiled(lua_State *L) {
     return 0;
 }
 
-static int L_draw_set_blend_mode(lua_State *L) {
-    int args = lua_gettop(L);
-    if (args != 1)
-        return luaL_error(L, ".draw_set_blend_mode(mode) takes 1 argument");
-
-    blend_mode = luaL_checknumber(L, 1);
-
-    return 0;
-}
-
 static int L_draw_rectangle_color(lua_State *L) {
     int args = lua_gettop(L);
     if (args != 9)
@@ -231,10 +233,10 @@ static int L_draw_circle_color(lua_State *L) {
 
 static const luaL_Reg L_methods[] = {
     {"draw",                    L_draw},
+    {"draw_set_blend_mode",     L_draw_set_blend_mode},
     {"draw_sprite_ext",         L_draw_sprite_ext},
     {"draw_sprite_general",     L_draw_sprite_general},
     {"draw_sprite_tiled",       L_draw_sprite_tiled},
-    {"draw_set_blend_mode",     L_draw_set_blend_mode},
     {"draw_rectangle_color",    L_draw_rectangle_color},
     {"draw_circle_color",       L_draw_circle_color},
 
