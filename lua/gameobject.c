@@ -22,7 +22,16 @@ static int L_createBaseObject(lua_State *L) {
     return CreateBaseObject(L);
 }
 
+static uint32_t getStringHash(const char *str) {
+    uint32_t hash = 2166136261u;
 
+    while (*str) {
+        hash ^= (uint8_t)*str++;
+        hash *= 16777619u;
+    }
+
+    return hash;
+}
 #pragma endregion
 
 #pragma region Object
@@ -393,6 +402,35 @@ static int L_getObjectCount(lua_State *L) {
     return 1;
 }
 
+static int L_isObjectExists(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 1)
+        return luaL_error(L, "Objects.isObjectExists() takes 1 arguments");
+
+    int size = getObjectCount();
+    if (size == 0) {
+        lua_pushboolean(L, false);
+        return 1;
+    }
+
+    const char *name = luaL_checkstring(L, 1);
+    uint32_t name_hash = getStringHash(name);
+
+    for (size_t i = 0; i < size; i++) {
+        Object *obj = &objects.data[i];
+        if (obj->base == NULL) continue;
+        if (obj->base->name_hash == name_hash) {
+            if (obj->base->name && strcmp(obj->base->name, name) == 0) {
+                lua_pushboolean(L, true);
+                return 1;
+            }
+        }
+    }
+
+    lua_pushboolean(L, false);
+    return 1;
+}
+
 static int L_setVisible(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setVisible, 2);
 
@@ -672,6 +710,7 @@ static const luaL_Reg L_methods[] = {
 
     {"getBaseName",         L_getBaseName},
     {"getObjectCount",      L_getObjectCount},
+    {"isObjectExists",      L_isObjectExists},
 
     {"setVisible",          L_setVisible},
     {"getVisible",          L_getVisible},
