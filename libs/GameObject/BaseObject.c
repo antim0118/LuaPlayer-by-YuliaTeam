@@ -39,7 +39,7 @@ static int getFreeBaseObjectIndex() {
 
 int CreateBaseObject(lua_State *L) {
     int args = lua_gettop(L);
-    
+
     int index = getFreeBaseObjectIndex();
 
     if (index == -1) {
@@ -49,15 +49,18 @@ int CreateBaseObject(lua_State *L) {
     const char *text = luaL_checkstring(L, 1);
     baseobjects[index].name = strdup(text);
     baseobjects[index].name_hash = getStringHash(text);
-    baseobjects[index].ref_oncreate = -1;
-    baseobjects[index].ref_onupdate = -1;
-    baseobjects[index].ref_ondraw = -1;
-    baseobjects[index].ref_oncollision = -1;
 
+    baseobjects[index].ref_oncreate = -1;
     GAMEOBJECT_REF(2, baseobjects[index].ref_oncreate); // onCreate
-    GAMEOBJECT_REF(3, baseobjects[index].ref_onupdate); // onUpdate
+
+    baseobjects[index].ref_ondraw = -1;
     GAMEOBJECT_REF(4, baseobjects[index].ref_ondraw);   // onDraw
+
+    baseobjects[index].ref_oncollision = -1;
     GAMEOBJECT_REF(5, baseobjects[index].ref_oncollision);   // onCollision
+
+    baseobjects[index].ref_onupdate = -1;
+    GAMEOBJECT_REF(3, baseobjects[index].ref_onupdate); // onUpdate
 
     lua_pushnumber(L, index);
 
