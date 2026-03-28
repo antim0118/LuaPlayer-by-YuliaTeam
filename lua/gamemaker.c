@@ -102,6 +102,32 @@ static int L_draw(lua_State *L) {
     return 0;
 }
 
+static int L_draw_sprite(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 3)
+        return luaL_error(L, ".draw_sprite(sprite, x, y) takes ... arguments");
+
+    g2dImage *img = *toG2D(L, 1);
+    if (!img)
+        return luaL_error(L, ".draw_sprite() can't get the texture");
+
+    int x = luaL_checknumber(L, 2), y = luaL_checknumber(L, 3);
+
+    g2dBeginRects(img);
+    g2dSetTexLinear(linear);
+    g2dSetCoordXY(x, y);
+    g2dSetScaleWH(img->w, img->h);
+    g2dSetRotation(-rotation);
+    g2dSetColor(color);
+    g2dSetAlpha(alpha);
+    if (blend_mode != -1)
+        g2dSetTexBlendMode(blend_mode);
+    g2dAdd();
+    g2dEnd();
+
+    return 0;
+}
+
 static int L_draw_sprite_ext(lua_State *L) {
     int args = lua_gettop(L);
     if (args != 10)
@@ -268,6 +294,7 @@ static const luaL_Reg L_methods[] = {
     {"draw_set_blend_mode",     L_draw_set_blend_mode},
     {"draw_set_color",          L_draw_set_color},
     {"draw_set_font",           L_draw_set_font},
+    {"draw_sprite",             L_draw_sprite},
     {"draw_sprite_ext",         L_draw_sprite_ext},
     {"draw_sprite_general",     L_draw_sprite_general},
     {"draw_sprite_tiled",       L_draw_sprite_tiled},
