@@ -27,7 +27,8 @@ typedef struct Object
 
     bool is_created;
     bool is_visible, is_enabled;
-    // 3 bytes
+    bool is_persistent;
+    // 4 bytes
 
     g2dImage *img;
     float x, y, z;

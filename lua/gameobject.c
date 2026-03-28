@@ -26,65 +26,13 @@ static int L_createBaseObject(lua_State *L) {
 #pragma endregion
 
 #pragma region Object
-#define MAX_OBJECTS 2000
-static Object objects[MAX_OBJECTS] = { 0 }; // 110 * 2000 = 220k bytes = 215kb
-static int objects_lastidx = -1;
-
-static int getFreeObjectIndex() {
-    if (objects_lastidx + 1 > MAX_OBJECTS)
-        return -1;
-    return objects_lastidx + 1;
-    // порядок отрисовки может сломаться
-    // for (size_t i = 0; i < MAX_OBJECTS; i++) {
-    //     if (!objects[i].isUsed)
-    //         return i;
-    // }
-    // return -1;
-}
+static ObjectArray objects;
 
 static int getObjectCount() {
-    return objects_lastidx + 1;
+    return objects.size;
 }
 
-static int L_createObject(lua_State *L) {
-    int args = lua_gettop(L);
-    if (args != 1)
-        return luaL_error(L, "Objects.createObject(name) takes 1 argument");
-
-    const char *name = luaL_checkstring(L, 1);
-    BaseObject *base = GetBaseObjectByName(name);
-    if (!base) {
-        printf("[Gameobject] Object %s wasn't found!\n", name);
-        return 0;
-    }
-
-    int index = getFreeObjectIndex();
-
-    if (index == -1) {
-        luaL_error(L, "Objects.createObject() reached max amount of objects");
-        return 0;
-    }
-
-    objects[index].base = base;
-
-    //create state table
-    if (objects[index].ref_state != -1)
-        luaL_unref(L, LUA_REGISTRYINDEX, objects[index].ref_state);
-    lua_newtable(L);
-    lua_pushstring(L, "id");
-    lua_pushnumber(L, index);
-    lua_settable(L, -3);
-    objects[index].ref_state = luaL_ref(L, LUA_REGISTRYINDEX);
-
-    if (objects_lastidx < index)
-        objects_lastidx = index;
-
-    lua_pushnumber(L, index);
-
-    return 1;
-}
-
-static void clearObject(lua_State *L, Object *obj) {
+static void resetObjectToDefault(lua_State *L, Object *obj) {
     obj->base = NULL;
 
     obj->is_created = false;
@@ -127,13 +75,42 @@ static void clearObject(lua_State *L, Object *obj) {
     GAMEOBJECT_UNREF(obj->ref_state);
 }
 
+static int L_createObject(lua_State *L) {
+    int args = lua_gettop(L);
+    if (args != 1)
+        return luaL_error(L, "Objects.createObject(name) takes 1 argument");
+
+    const char *name = luaL_checkstring(L, 1);
+    BaseObject *base = GetBaseObjectByName(name);
+    if (!base) {
+        printf("[Gameobject] Object %s wasn't found!\n", name);
+        return 0;
+    }
+
+    int index = ObjectArrayCreate(&objects);
+
+    resetObjectToDefault(L, &objects.data[index]);
+
+    objects.data[index].base = base;
+
+    //create state table
+    if (objects.data[index].ref_state != -1)
+        luaL_unref(L, LUA_REGISTRYINDEX, objects.data[index].ref_state);
+    lua_newtable(L);
+    lua_pushstring(L, "id");
+    lua_pushnumber(L, index);
+    lua_settable(L, -3);
+    objects.data[index].ref_state = luaL_ref(L, LUA_REGISTRYINDEX);
+
+    lua_pushnumber(L, index);
+
+    return 1;
+}
+
 
 
 static int L_clearObjects(lua_State *L) {
-    for (size_t i = 0; i < MAX_OBJECTS; i++) {
-        clearObject(L, &objects[i]);
-    }
-    objects_lastidx = -1;
+    ObjectArrayClear(&objects, false);
     clock_delta = clock();
 
     return 0;
@@ -155,12 +132,13 @@ static void processUpdate(lua_State *L) {
     delta = (float)(clock_delta_now - clock_delta) / CLOCKS_PER_SEC;
     clock_delta = clock_delta_now;
 
-    if (objects_lastidx == -1)
+    int size = getObjectCount();
+    if (size == 0)
         return;
 
     /* Create */
-    for (size_t i = 0; i <= objects_lastidx; i++) {
-        Object *obj = &objects[i];
+    for (size_t i = 0; i < size; i++) {
+        Object *obj = &objects.data[i];
         if (obj->base == NULL || obj->is_created) continue;
 
         if (obj->base->ref_oncreate != -1) {
@@ -173,8 +151,8 @@ static void processUpdate(lua_State *L) {
     }
 
     /* Update */
-    for (size_t i = 0; i <= objects_lastidx; i++) {
-        Object *obj = &objects[i];
+    for (size_t i = 0; i < size; i++) {
+        Object *obj = &objects.data[i];
         if (obj->base == NULL || !obj->is_enabled || !obj->is_created) continue;
 
         if (obj->base->ref_onupdate != -1) {
@@ -191,13 +169,14 @@ static void processUpdate(lua_State *L) {
 }
 
 static void processDraw(lua_State *L) {
-    if (objects_lastidx == -1)
+    int size = getObjectCount();
+    if (size == 0)
         return;
 
     bool usedCamera = g2dGetUseCamera();
     bool changedTex = true;
-    for (size_t i = 0; i <= objects_lastidx; i++) {
-        Object *obj = &objects[i];
+    for (size_t i = 0; i < size; i++) {
+        Object *obj = &objects.data[i];
         if (obj->base == NULL || !obj->is_visible || !obj->is_created) continue;
 
         if (obj->base->ref_ondraw != -1) {
@@ -232,7 +211,7 @@ static void processDraw(lua_State *L) {
                 g2dSetColor(obj->color);
             g2dSetAlpha(obj->alpha);
             g2dAdd();
-            if (i == objects_lastidx || (&objects[i + 1])->img != obj->img) { //last object or texture will be changed
+            if (i == size - 1 || (&objects.data[i + 1])->img != obj->img) { //last object or texture will be changed
                 g2dEnd();
                 changedTex = true;
             }
@@ -244,11 +223,12 @@ static void processDraw(lua_State *L) {
 #define PUSHKVSTRING(KEY, VALUE) lua_pushstring(L, KEY); lua_pushstring(L, VALUE); lua_settable(L, -3); 
 #define PUSHKVNUMBER(KEY, VALUE) lua_pushstring(L, KEY); lua_pushnumber(L, VALUE); lua_settable(L, -3); 
 static void processCollisions(lua_State *L) {
-    if (objects_lastidx == -1)
+    int size = getObjectCount();
+    if (size == 0)
         return;
 
-    for (size_t i = 0; i <= objects_lastidx; i++) {
-        Object *obj = &objects[i];
+    for (size_t i = 0; i < size; i++) {
+        Object *obj = &objects.data[i];
         if (obj->base == NULL || !obj->is_enabled || !obj->is_created) continue;
 
         if (!obj->is_solid || obj->base->ref_oncollision == -1) continue;
@@ -257,10 +237,10 @@ static void processCollisions(lua_State *L) {
         bool preparedData = false;
 
         int count = 1;
-        for (size_t j = 0; j <= objects_lastidx; j++) {
+        for (size_t j = 0; j < size; j++) {
             if (i == j)continue;
 
-            Object *other = &objects[j];
+            Object *other = &objects.data[j];
             if (other->base == NULL || !other->is_enabled || !other->is_solid || other->is_trigger) continue;
 
             bool doneCorrection = false;
@@ -301,12 +281,13 @@ static void processCollisions(lua_State *L) {
 #undef PUSHKVNUMBER
 
 static void drawCollisions(lua_State *L, int alpha) {
-    if (objects_lastidx == -1)
+    int size = getObjectCount();
+    if (size == 0)
         return;
 
     bool usedCamera = g2dGetUseCamera();
-    for (size_t i = 0; i <= objects_lastidx; i++) {
-        Object *obj = &objects[i];
+    for (size_t i = 0; i < size; i++) {
+        Object *obj = &objects.data[i];
         if (obj->base == NULL || !obj->is_enabled) continue;
 
         if (!obj->is_solid) continue;
@@ -382,8 +363,8 @@ static int L_drawCollisions(lua_State *L) {
 #pragma region Setters / Getters
 
 static void SetSize(int index, int w, int h) {
-    objects[index].w = w;
-    objects[index].h = h;
+    objects.data[index].w = w;
+    objects.data[index].h = h;
 }
 
 #define CHECK_ARGS_AND_GET_INDEX(name, argsNum)                                     \
@@ -401,7 +382,7 @@ static void SetSize(int index, int w, int h) {
 static int L_getBaseName(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getBaseName, 1);
 
-    lua_pushstring(L, objects[index].base->name);
+    lua_pushstring(L, objects.data[index].base->name);
 
     return 1;
 }
@@ -415,7 +396,7 @@ static int L_getObjectCount(lua_State *L) {
 static int L_setVisible(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setVisible, 2);
 
-    objects[index].is_visible = lua_toboolean(L, 2) != 0;
+    objects.data[index].is_visible = lua_toboolean(L, 2) != 0;
 
     return 0;
 }
@@ -423,7 +404,7 @@ static int L_setVisible(lua_State *L) {
 static int L_getVisible(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getVisible, 1);
 
-    lua_pushboolean(L, objects[index].is_visible != 0);
+    lua_pushboolean(L, objects.data[index].is_visible != 0);
 
     return 1;
 }
@@ -431,7 +412,7 @@ static int L_getVisible(lua_State *L) {
 static int L_setEnabled(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setEnabled, 2);
 
-    objects[index].is_enabled = lua_toboolean(L, 2) != 0;
+    objects.data[index].is_enabled = lua_toboolean(L, 2) != 0;
 
     return 0;
 }
@@ -439,7 +420,7 @@ static int L_setEnabled(lua_State *L) {
 static int L_getEnabled(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getEnabled, 1);
 
-    lua_pushboolean(L, objects[index].is_enabled != 0);
+    lua_pushboolean(L, objects.data[index].is_enabled != 0);
 
     return 1;
 }
@@ -451,7 +432,7 @@ static int L_setTexture(lua_State *L) {
     if (!img)
         return luaL_error(L, "Objects.setTexture() can't get the texture");
 
-    objects[index].img = img;
+    objects.data[index].img = img;
     SetSize(index, img->w, img->h);
 
     return 0;
@@ -460,10 +441,10 @@ static int L_setTexture(lua_State *L) {
 static int L_setTextureCrop(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setTextureCrop, 5);
 
-    objects[index].crop_x = luaL_checkinteger(L, 2);
-    objects[index].crop_y = luaL_checkinteger(L, 3);
-    objects[index].crop_w = luaL_checkinteger(L, 4);
-    objects[index].crop_h = luaL_checkinteger(L, 5);
+    objects.data[index].crop_x = luaL_checkinteger(L, 2);
+    objects.data[index].crop_y = luaL_checkinteger(L, 3);
+    objects.data[index].crop_w = luaL_checkinteger(L, 4);
+    objects.data[index].crop_h = luaL_checkinteger(L, 5);
 
     return 0;
 }
@@ -471,9 +452,9 @@ static int L_setTextureCrop(lua_State *L) {
 static int L_getPos(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getPos, 1);
 
-    lua_pushnumber(L, objects[index].x);
-    lua_pushnumber(L, objects[index].y);
-    lua_pushnumber(L, objects[index].z);
+    lua_pushnumber(L, objects.data[index].x);
+    lua_pushnumber(L, objects.data[index].y);
+    lua_pushnumber(L, objects.data[index].z);
 
     return 3;
 }
@@ -481,12 +462,12 @@ static int L_getPos(lua_State *L) {
 static int L_setPos(lua_State *L) {
     CHECK_VARIABLE_ARGS_AND_GET_INDEX(setPos, 3, 4);
 
-    objects[index].x = luaL_checknumber(L, 2);
-    objects[index].y = luaL_checknumber(L, 3);
+    objects.data[index].x = luaL_checknumber(L, 2);
+    objects.data[index].y = luaL_checknumber(L, 3);
     if (args >= 4) {
-        objects[index].z = luaL_checknumber(L, 4);
-        if (objects[index].z < 0 || objects[index].z > 65535)
-            return luaL_error(L, "Objects.setPos() z axis should be in range of [0-65535]");
+        objects.data[index].z = 32767 - luaL_checknumber(L, 4);
+        if (objects.data[index].z < 0 || objects.data[index].z > 65535)
+            return luaL_error(L, "Objects.setPos() z axis should be in range of [0-65535] (32767 - z)");
     }
 
     return 0;
@@ -495,7 +476,7 @@ static int L_setPos(lua_State *L) {
 static int L_getRotation(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getRotation, 1);
 
-    lua_pushnumber(L, objects[index].rotation);
+    lua_pushnumber(L, objects.data[index].rotation);
 
     return 1;
 }
@@ -503,7 +484,7 @@ static int L_getRotation(lua_State *L) {
 static int L_setRotation(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setRotation, 2);
 
-    objects[index].rotation = luaL_checkint(L, 2);
+    objects.data[index].rotation = luaL_checkint(L, 2);
 
     return 0;
 }
@@ -511,8 +492,8 @@ static int L_setRotation(lua_State *L) {
 static int L_getOrigin(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getOrigin, 1);
 
-    lua_pushnumber(L, objects[index].origin_x);
-    lua_pushnumber(L, objects[index].origin_y);
+    lua_pushnumber(L, objects.data[index].origin_x);
+    lua_pushnumber(L, objects.data[index].origin_y);
 
     return 2;
 }
@@ -520,8 +501,8 @@ static int L_getOrigin(lua_State *L) {
 static int L_setOrigin(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setOrigin, 3);
 
-    objects[index].origin_x = luaL_checknumber(L, 2);
-    objects[index].origin_y = luaL_checknumber(L, 3);
+    objects.data[index].origin_x = luaL_checknumber(L, 2);
+    objects.data[index].origin_y = luaL_checknumber(L, 3);
 
     return 0;
 }
@@ -529,8 +510,8 @@ static int L_setOrigin(lua_State *L) {
 static int L_getSize(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getSize, 1);
 
-    lua_pushinteger(L, objects[index].w);
-    lua_pushinteger(L, objects[index].h);
+    lua_pushinteger(L, objects.data[index].w);
+    lua_pushinteger(L, objects.data[index].h);
 
     return 2;
 }
@@ -546,7 +527,7 @@ static int L_setSize(lua_State *L) {
 static int L_getColor(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getColor, 1);
 
-    *pushColor(L) = objects[index].color;
+    *pushColor(L) = objects.data[index].color;
 
     return 1;
 }
@@ -554,7 +535,7 @@ static int L_getColor(lua_State *L) {
 static int L_setColor(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setColor, 2);
 
-    objects[index].color = *toColor(L, 2);
+    objects.data[index].color = *toColor(L, 2);
 
     return 0;
 }
@@ -562,7 +543,7 @@ static int L_setColor(lua_State *L) {
 static int L_getAlpha(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getAlpha, 1);
 
-    lua_pushinteger(L, objects[index].alpha);
+    lua_pushinteger(L, objects.data[index].alpha);
 
     return 1;
 }
@@ -570,7 +551,7 @@ static int L_getAlpha(lua_State *L) {
 static int L_setAlpha(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setAlpha, 2);
 
-    objects[index].alpha = luaL_checkinteger(L, 2);
+    objects.data[index].alpha = luaL_checkinteger(L, 2);
 
     return 0;
 }
@@ -578,8 +559,8 @@ static int L_setAlpha(lua_State *L) {
 static int L_getSpeed(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getSpeed, 1);
 
-    lua_pushnumber(L, objects[index].speed_x);
-    lua_pushnumber(L, objects[index].speed_y);
+    lua_pushnumber(L, objects.data[index].speed_x);
+    lua_pushnumber(L, objects.data[index].speed_y);
 
     return 2;
 }
@@ -587,8 +568,24 @@ static int L_getSpeed(lua_State *L) {
 static int L_setSpeed(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setSpeed, 3);
 
-    objects[index].speed_x = luaL_checknumber(L, 2);
-    objects[index].speed_y = luaL_checknumber(L, 3);
+    objects.data[index].speed_x = luaL_checknumber(L, 2);
+    objects.data[index].speed_y = luaL_checknumber(L, 3);
+
+    return 0;
+}
+
+static int L_getPersistent(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(getPersistent, 1);
+
+    lua_pushboolean(L, objects.data[index].is_persistent);
+
+    return 1;
+}
+
+static int L_setPersistent(lua_State *L) {
+    CHECK_ARGS_AND_GET_INDEX(setPersistent, 2);
+
+    objects.data[index].is_persistent = lua_toboolean(L, 2) != 0;
 
     return 0;
 }
@@ -596,7 +593,7 @@ static int L_setSpeed(lua_State *L) {
 static int L_setUseCamera(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setUseCamera, 2);
 
-    objects[index].use_camera = lua_toboolean(L, 2) != 0;
+    objects.data[index].use_camera = lua_toboolean(L, 2) != 0;
 
     return 0;
 }
@@ -604,7 +601,7 @@ static int L_setUseCamera(lua_State *L) {
 static int L_setUseRepeat(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setUseRepeat, 2);
 
-    objects[index].use_repeat = lua_toboolean(L, 2) != 0;
+    objects.data[index].use_repeat = lua_toboolean(L, 2) != 0;
 
     return 0;
 }
@@ -612,7 +609,7 @@ static int L_setUseRepeat(lua_State *L) {
 static int L_getState(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getState, 1);
 
-    lua_rawgeti(L, LUA_REGISTRYINDEX, objects[index].ref_state);
+    lua_rawgeti(L, LUA_REGISTRYINDEX, objects.data[index].ref_state);
 
     return 1;
 }
@@ -620,16 +617,16 @@ static int L_getState(lua_State *L) {
 static int L_setCollisionRect(lua_State *L) {
     CHECK_VARIABLE_ARGS_AND_GET_INDEX(setCollisionRect, 1, 5);
 
-    objects[index].is_solid = true;
-    objects[index].collision_shape = COLLISION_RECT;
+    objects.data[index].is_solid = true;
+    objects.data[index].collision_shape = COLLISION_RECT;
 
     if (args >= 5) {
-        objects[index].cx = luaL_checkinteger(L, 2);
-        objects[index].cy = luaL_checkinteger(L, 3);
-        objects[index].cw = luaL_checkinteger(L, 4);
-        objects[index].ch = luaL_checkinteger(L, 5);
+        objects.data[index].cx = luaL_checkinteger(L, 2);
+        objects.data[index].cy = luaL_checkinteger(L, 3);
+        objects.data[index].cw = luaL_checkinteger(L, 4);
+        objects.data[index].ch = luaL_checkinteger(L, 5);
     } else {
-        setDefaultRectCollision(&objects[index]);
+        setDefaultRectCollision(&objects.data[index]);
     }
 
     return 0;
@@ -638,7 +635,7 @@ static int L_setCollisionRect(lua_State *L) {
 static int L_setCollisionTrigger(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setCollisionTrigger, 2);
 
-    objects[index].is_trigger = lua_toboolean(L, 2) != 0;
+    objects.data[index].is_trigger = lua_toboolean(L, 2) != 0;
 
     return 0;
 }
@@ -646,9 +643,9 @@ static int L_setCollisionTrigger(lua_State *L) {
 static int L_setCollisionRadius(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(setCollisionRadius, 2);
 
-    objects[index].is_solid = true;
-    objects[index].collision_shape = COLLISION_CIRCLE;
-    objects[index].radius = luaL_checknumber(L, 2);
+    objects.data[index].is_solid = true;
+    objects.data[index].collision_shape = COLLISION_CIRCLE;
+    objects.data[index].radius = luaL_checknumber(L, 2);
 
     return 0;
 }
@@ -656,7 +653,7 @@ static int L_setCollisionRadius(lua_State *L) {
 static int L_getCollisionRadius(lua_State *L) {
     CHECK_ARGS_AND_GET_INDEX(getCollisionRadius, 1);
 
-    lua_pushnumber(L, objects[index].radius);
+    lua_pushnumber(L, objects.data[index].radius);
 
     return 1;
 }
@@ -697,6 +694,8 @@ static const luaL_Reg L_methods[] = {
     {"setAlpha",            L_setAlpha},
     {"getSpeed",            L_getSpeed},
     {"setSpeed",            L_setSpeed},
+    {"getPersistent",       L_getPersistent},
+    {"setPersistent",       L_setPersistent},
     {"setUseCamera",        L_setUseCamera},
     {"setUseRepeat",        L_setUseRepeat},
     {"getState",            L_getState},
@@ -716,6 +715,7 @@ static const luaL_Reg L_metamethods[] = {
 
 
 int GAMEOBJECT_init(lua_State *L) {
+    ObjectArrayInit(&objects);
     L_clearObjects(L);
     // luaL_register(L, "GameObject", L_methods);
     UserdataRegister("GameObject", L_methods, L_metamethods);

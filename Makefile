@@ -5,7 +5,8 @@ SRC_OBJS = libs/callbacks.o libs/intra/intraFont.o libs/intra/libccc.o 				\
 	libs/aalib/pspaalib.o libs/aalib/pspaalibat3.o 									\
 	libs/aalib/pspaalibogg.o libs/aalib/pspaalibflac.o libs/aalib/pspaalibcommon.o 	\
 	libs/aalib/pspaalibeffects.o libs/aalib/pspaalibwav.o 							\
-	libs/GameObject/BaseObject.o libs/GameObject/Collisions.o
+	libs/GameObject/BaseObject.o libs/GameObject/Collisions.o 						\
+	libs/GameObject/ObjectArray.o
 
 SRC_OBJS_NOT_IMPORTANT = libs/pmp/mpegbase.o libs/pmp/audiodecoder.o libs/pmp/avc.o \
 	libs/pmp/mem64.o libs/pmp/pmp.o libs/pmp/pmp_decode.o libs/pmp/pmp_file.o 		\
