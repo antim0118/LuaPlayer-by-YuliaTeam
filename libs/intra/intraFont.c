@@ -1346,7 +1346,11 @@ float intraFontMeasureTextUCS2Ex(intraFont *font, const cccUCS2 *text, int lengt
 
 int intraFontTextHeight(intraFont *font)
 {
-	return ceil((font->glyph[1].height)* font->size);
+    if (!font) return 0;
+    
+    // Используем глобальную высоту строки (advancey), 
+    // которая хранится в четверть-пикселях, поэтому умножаем на 0.25f
+    return ceil((font->glyph[1].height)* font->size);
 }
 
 intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float size) {
@@ -1415,8 +1419,8 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     font->texYSize = 0;
     
     // Set advance based on actual font metrics
-    font->advancex = (int)face->size->metrics.max_advance >> 6;
-    font->advancey = (int)(face->size->metrics.ascender - face->size->metrics.descender) >> 6;
+    font->advancex = (int)(face->size->metrics.max_advance >> 4);
+    font->advancey = (int)((face->size->metrics.ascender - face->size->metrics.descender) >> 4);
 
     // Character set handling
     font->n_chars = 0x1000;
@@ -1493,7 +1497,7 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
     // Load glyphs with proper mapping
     int loaded_chars = 0;
     int mapped_chars = 0; // Отдельный счетчик для маппинга
-    FT_Int32 load_flags = FT_LOAD_RENDER | FT_LOAD_NO_BITMAP | FT_LOAD_TARGET_NORMAL;
+    FT_Int32 load_flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL;
     
     // Создаем маппинг: char_code -> index в glyph массиве
     for (int range = 0; range < font->charmap_compr_len && mapped_chars < font->n_chars; range++) {
@@ -1536,7 +1540,7 @@ intraFont* intraFontLoadTTF(const char *filename, unsigned int options, float si
             glyph->height = slot->bitmap.rows;
             glyph->top = (short)slot->bitmap_top; 
             glyph->left = (short)slot->bitmap_left;
-            glyph->advance = (short)slot->advance.x >> 4;
+            glyph->advance = (short)((slot->advance.x) >> 4);
             glyph->flags = PGF_BMP_H_ROWS | PGF_CACHED;
             //glyph->shadowID = 0;
             glyph->ptr = 0;
