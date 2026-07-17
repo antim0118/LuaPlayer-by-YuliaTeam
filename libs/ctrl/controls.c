@@ -64,12 +64,7 @@ void controls_read() {
 }
 
 int controls_pressed(const unsigned int button) {
-    if ((pad.pressed & button) == button) {
-        pad.pressed &= ~button;
-        return 1;
-    }
-
-    return 0;
+    return ((pad.pressed & button) == button);
 }
 
 int controls_held(const unsigned int button) {
@@ -77,10 +72,7 @@ int controls_held(const unsigned int button) {
 }
 
 int controls_released(const unsigned int button) {
-    if ((pad.released & button) == button)
-        return 1;
-
-    return 0;
+    return ((pad.released & button) == button);
 }
 
 int controls_AnalogX() {
