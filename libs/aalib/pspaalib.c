@@ -262,6 +262,9 @@ int AalibUnload(int channel) {
     if ((channel < 1) || (channel > 48)) {
         return PSPAALIB_ERROR_INVALID_CHANNEL;
     }
+    if (!channels[channel].initialized) {
+        return PSPAALIB_SUCCESS;
+    }
     channels[channel].initialized = FALSE;
     if ((PSPAALIB_CHANNEL_WAV_1 <= channel) && (channel <= PSPAALIB_CHANNEL_WAV_32)) {
         return UnloadWav(channel - PSPAALIB_CHANNEL_WAV_1);
