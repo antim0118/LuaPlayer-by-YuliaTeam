@@ -247,7 +247,7 @@ static int AALIB_unload(lua_State *L) {
             LPYTMP3PATH = NULL;
         }
     } else {
-        if (AalibGetStatus(channel) == -3)
+        if (AalibGetStatus(channel) == PSPAALIB_STATUS_PLAYING)
             AalibStop(channel);
 
         if (AalibUnload(channel) != 0)
