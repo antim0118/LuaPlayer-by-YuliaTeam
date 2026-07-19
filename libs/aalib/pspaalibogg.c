@@ -183,7 +183,10 @@ int SeekOgg(int channel, int time) {
     }
     bool tempPause = streamsOgg[channel].paused;
     streamsOgg[channel].paused = TRUE;
-    ov_pcm_seek(&(streamsOgg[channel].oggVorbisFile), time * 44100);
+    if (time == 0)
+        ov_raw_seek(&(streamsOgg[channel].oggVorbisFile), 1);
+    else
+        ov_pcm_seek(&(streamsOgg[channel].oggVorbisFile), time * 44100);
     streamsOgg[channel].paused = tempPause;
     return PSPAALIB_SUCCESS;
 }
