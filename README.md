@@ -24,3 +24,7 @@ git clone https://github.com/antim0118/LuaPlayer-by-YuliaTeam
 ```bash
 make clean && make
 ```
+
+## Примечание: PMP видео
+
+Видео формата PMP должны быть строго 480х272. Любое другое разрешение работать ___не будет___.
