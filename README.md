@@ -1,6 +1,6 @@
 # LuaPlayer by YuliaTeam
 
-### [Документация](https://luaplayeryt.ru/)
+### [Документация](https://antim0118.github.io/LuaPlayerYTDocs/)
 
 ## Где скачать готовый EBOOT.PBP?
 ### Способ 1: Стабильная версия
