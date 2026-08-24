@@ -161,6 +161,7 @@ Play:
 Release:
     FreeHardwareChannel(channel);
     AalibStop(channel);
+    sceKernelDelayThread(1000);
     free(mainBuf);
     free(backBuf);
     sceKernelExitThread(0);

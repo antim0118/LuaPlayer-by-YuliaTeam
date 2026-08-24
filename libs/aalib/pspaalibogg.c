@@ -26,11 +26,11 @@ typedef struct
     long bufLength;
     int stopReason;
     bool paused;
-    bool outputInProgress;
     bool initialized;
     bool autoloop;
     bool loadToRam;
     AalibMetadata metadata;
+    SceLwMutexWorkarea mutex;
 } OggFileInfo;
 
 OggFileInfo streamsOgg[10];
@@ -175,6 +175,7 @@ int RewindOgg(int channel) {
 }
 
 int SeekOgg(int channel, int time) {
+    sceKernelLockLwMutex(&(streamsOgg[channel].mutex), 1, NULL);
     if ((channel < 0) || (channel > 9)) {
         return PSPAALIB_ERROR_OGG_INVALID_CHANNEL;
     }
@@ -188,6 +189,7 @@ int SeekOgg(int channel, int time) {
     else
         ov_pcm_seek(&(streamsOgg[channel].oggVorbisFile), time * 44100);
     streamsOgg[channel].paused = tempPause;
+    sceKernelUnlockLwMutex(&(streamsOgg[channel].mutex), 1);
     return PSPAALIB_SUCCESS;
 }
 
@@ -200,7 +202,7 @@ int GetBufferOgg(short *buf, int length, float amp, int channel) {
         memset((char *)buf, 0, byteLength);
         return PSPAALIB_WARNING_PAUSED_BUFFER_REQUESTED;
     }
-    streamsOgg[channel].outputInProgress = 1;
+    sceKernelLockLwMutex(&(streamsOgg[channel].mutex), 1, NULL);
     int currentSection, i;
     while (streamsOgg[channel].bufLength < byteLength) {
         unsigned long bytesToRead = byteLength - streamsOgg[channel].bufLength;
@@ -208,8 +210,8 @@ int GetBufferOgg(short *buf, int length, float amp, int channel) {
         if (!bytesRead) {
             if (!streamsOgg[channel].autoloop) {
                 streamsOgg[channel].paused = TRUE;
-                streamsOgg[channel].outputInProgress = FALSE;
                 streamsOgg[channel].stopReason = PSPAALIB_STOP_END_OF_STREAM;
+                sceKernelUnlockLwMutex(&(streamsOgg[channel].mutex), 1);
                 return PSPAALIB_WARNING_END_OF_STREAM_REACHED;
             }
             RewindOgg(channel);
@@ -223,7 +225,7 @@ int GetBufferOgg(short *buf, int length, float amp, int channel) {
     }
     streamsOgg[channel].bufLength -= byteLength;
     memmove(streamsOgg[channel].buf, streamsOgg[channel].buf + byteLength, streamsOgg[channel].bufLength);
-    streamsOgg[channel].outputInProgress = FALSE;
+    sceKernelUnlockLwMutex(&(streamsOgg[channel].mutex), 1);
     return PSPAALIB_SUCCESS;
 }
 
@@ -461,6 +463,14 @@ int LoadOgg(char *filename, int channel, bool loadToRam) {
         }
         sceIoRead(streamsOgg[channel].file, streamsOgg[channel].data, streamsOgg[channel].dataSize);
     }
+
+    // create mutex
+    if (sceKernelCreateLwMutex(&(streamsOgg[channel].mutex), "OggMutex", 0, 0, NULL) != 0) {
+        ov_clear(&(streamsOgg[channel].oggVorbisFile));
+        sceIoClose(streamsOgg[channel].file);
+        return PSPAALIB_ERROR_OGG_CREATE_MUTEX;
+    }
+
     streamsOgg[channel].bufLength = 0;
     streamsOgg[channel].paused = TRUE;
     streamsOgg[channel].initialized = TRUE;
@@ -478,15 +488,17 @@ int UnloadOgg(int channel) {
         return PSPAALIB_SUCCESS;
     }
     streamsOgg[channel].paused = TRUE;
-    while (streamsOgg[channel].outputInProgress) {
-        sceKernelDelayThread(10000);
-    }
+    sceKernelLockLwMutex(&(streamsOgg[channel].mutex), 1, NULL);
     ov_clear(&(streamsOgg[channel].oggVorbisFile));
     sceIoClose(streamsOgg[channel].file);
     streamsOgg[channel].stopReason = PSPAALIB_STOP_UNLOADED;
     streamsOgg[channel].initialized = FALSE;
+    sceKernelUnlockLwMutex(&(streamsOgg[channel].mutex), 1);
+    sceKernelDeleteLwMutex(&(streamsOgg[channel].mutex));
     return PSPAALIB_SUCCESS;
 }
+
+#if FALSE // требуется для FLAC
 
 extern int ogg_stream_init(ogg_stream_state *os, int serialno) {
     if (os) {
@@ -559,3 +571,5 @@ extern int ogg_stream_clear(ogg_stream_state *os) {
     }
     return -1;
 }
+
+#endif

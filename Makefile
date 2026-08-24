@@ -3,7 +3,7 @@ TARGET = LuaPlayerYT
 SRC_OBJS = libs/intra/intraFont.o libs/intra/libccc.o libs/ctrl/controls.o \
 	libs/g2d/glib2d.o libs/g2d/glib2dScreenshot.o libs/intra/libtext.o \
 	libs/aalib/pspaalib.o libs/aalib/pspaalibat3.o \
-	libs/aalib/pspaalibogg.o libs/aalib/pspaalibflac.o libs/aalib/pspaalibcommon.o \
+	libs/aalib/pspaalibogg.o libs/aalib/pspaalibcommon.o \
 	libs/aalib/pspaalibeffects.o libs/aalib/pspaalibwav.o \
 	libs/pmp/mpegbase.o libs/pmp/audiodecoder.o libs/pmp/avc.o libs/pmp/mem64.o libs/pmp/pmp.o \
 	libs/pmp/pmp_decode.o libs/pmp/pmp_file.o libs/pmp/pmp_play.o libs/pmp/pmp_read.o \
@@ -25,7 +25,8 @@ OBJS = $(SRC_OBJS) $(LUA_SRC_OBJECTS) $(LUA_OBJS) LP.o
 
 INCDIR = include
 LIBDIR = lib
-CFLAGS = -O3 -G0 -Wall -Wno-trigraphs
+# CFLAGS = -O3 -G0 -Wall -Wno-trigraphs
+CFLAGS = -g3 -Wl,-Map,EBOOT.map
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS) -c
 
@@ -33,7 +34,7 @@ ASFLAGS = $(CFLAGS) -c
 BUILD_PRX = 1
 PSP_FW_VERSION = 660
 
-LIBS = -lpng -ljpeg -lpsppower -lz -lpspgu -lm -lc -lFLAC -lvorbisidec -lpspaudio \
+LIBS = -lpng -ljpeg -lpsppower -lz -lpspgu -lm -lc -lvorbisidec -lpspaudio \
        -lpspaudiocodec -lpspaudiolib -lpspatrac3 -lpspmp3 -lpspmpeg \
        -lpspsystemctrl_kernel -lpsprtc -lpspgum -lpspvfpu -lpspusb -lpspusbstor \
        -lpspkubridge -lpspvram -lbz2 -lfreetype -lpspvaudio -lpspmath

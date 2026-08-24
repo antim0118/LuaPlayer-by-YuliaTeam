@@ -21,11 +21,9 @@
 #include <math.h>
 #include <pspmp3.h>
 #include <pspatrac3.h>
-#include <tremor/ivorbiscodec.h>
 #include <tremor/ivorbisfile.h>
 #include <setjmp.h>
 #include "../g2d/glib2d.h"
-//#include <vorbis/vorbisfile.h>
 
 #ifndef bool
 #define bool unsigned char
@@ -145,6 +143,7 @@
 #define PSPAALIB_ERROR_OGG_INVALID_CHANNEL 43
 #define PSPAALIB_ERROR_OGG_UNINITIALIZED_CHANNEL 44
 #define PSPAALIB_ERROR_OGG_INSUFFICIENT_RAM 45
+#define PSPAALIB_ERROR_OGG_CREATE_MUTEX 46
 
 #define PSPAALIB_ERROR_AT3_INVALID_FILE 51
 #define PSPAALIB_ERROR_AT3_INVALID_CHANNEL 52
